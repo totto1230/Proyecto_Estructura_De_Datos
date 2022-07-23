@@ -7,4 +7,5 @@ using namespace std;
 int main(){
     cout << " TEST " << endl;
     cout << " TEST 2" << endl;
+    cout << " TEST 3" << endl;
 }
