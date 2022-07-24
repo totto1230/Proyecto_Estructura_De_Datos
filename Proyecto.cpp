@@ -88,6 +88,7 @@ void crearNodosListaPrincipalDefaultEspecialidades(lista &cab){
     crearListaPrincipalDocs(cab,'C');
 }
 
+
 void mostrar(lista cab){
     lista auxRecorrer;
     if(cab==NULL){
