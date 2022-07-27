@@ -17,13 +17,14 @@ ofstream file;
 
 //Este metodo retorna un puntero char el cual contiene la fecha del momento para poder hacer logging and auditing
 char* get_time() {
-	   // current date/time based on current system
+    // current date/time based on current system
    time_t now = time(0);
    
    // convert now to string form
    char* dt = ctime(&now);
    return dt;
 }
+
 void logging(){
 	//ofstream file;
 	file.open("logs.txt",ios::out);
@@ -127,15 +128,15 @@ void crearListaUserLogging(listaUsers &cab, string nombre, int codigo, char tipo
 }
 void crearAdminAndUserDefault(listaUsers &cab){
     /*Admin: Joseph Granados, 1, A, totto, Testing123!, true -  Sebastian Cheng, 2, A, scheng, Testing123!, true - Dummy Admin, 3, A, dummy, Testing123!, false
-      Users: Joseph Granados, 4, E, tottoU, Testing123!, true -  Sebastian Cheng, 5, E, scheng, Testing123!, true - Dummy Admin, 6, E, dummy, Testing123!, false*/
+      Users: Joseph Granados, 4, E, tottoU, Testing123!, true -  Sebastian Cheng, 5, E, schengg, Testing123!, true - Dummy Admin, 6, E, dummyU, Testing123!, false*/
     char* fechaActual= get_time();
     file<<fechaActual<<" ADDED DEFAULT ADMIN/STANDARD USERS"<< endl;
     crearListaUserLogging(cab, "Joseph Granados", 1, 'A', "totto", "Testing123!", true);
     crearListaUserLogging(cab, "Sebastian Cheng", 2, 'A', "scheng", "Testing123!", true);
     crearListaUserLogging(cab, "Dummy Admin", 3, 'A', "dummy", "Testing123!", false);
     crearListaUserLogging(cab, "Joseph Granados", 4, 'E', "tottoU", "Testing123!", true);
-    crearListaUserLogging(cab, "Sebastian Cheng", 5, 'E', "scheng", "Testing123!", true);
-    crearListaUserLogging(cab, "Dummy Admin", 6, 'E', "dummy", "Testing123!", false);
+    crearListaUserLogging(cab, "Sebastian Cheng", 5, 'E', "schengg", "Testing123!", true);
+    crearListaUserLogging(cab, "Dummy User", 6, 'E', "dummyU", "Testing123!", false);
 }
 void mostrarUsers(listaUsers cab){
     listaUsers auxRecorrer;
@@ -162,9 +163,8 @@ bool validationPassword (string password){
     char char_array[lenght+1];
     char nums[]={'1','2','3','4','5','6','7','8','9','0'};
     char especialChar[]={'!','#','$','%'};
-    
-    strcpy(char_array, password.c_str());
 
+    strcpy(char_array, password.c_str());
     
     if(lenght<8){
         validation=false;
@@ -185,8 +185,7 @@ bool validationPassword (string password){
     return validation;
 }
 
-
-//METODO PARA LA LISTA DE DOCTORES
+//METODO PARA LA LISTA DE ESPECIALIDADES
 
 //Este método crea un Nodo de Especialidades el cual recibe de parametro una cabeza de tipo lista 
 nodo *crearNodoDocs(lista &cab, char especialidad){
