@@ -62,12 +62,14 @@ typedef struct nodoUsers *listaUsers;
 bool login(listaUsers &cab, string user, string password){
     listaUsers aux=cab;
     bool validation=false;
+    int log=0;
     char* fechaActual= get_time();
     while(aux!=NULL){
+        log=1;
         if(aux->user==user){
-            file<<fechaActual<<"INVALID PASSWORD" << endl;
+            log=2;
             if(aux->contra==password){
-                file<<fechaActual<<"USER IS DISABLED" << endl;
+                log=3;
                 if(aux->activo==true){
                     validation=true;
                     cout<< "LOGGED AS " << aux->nombre<< endl;
@@ -77,10 +79,25 @@ bool login(listaUsers &cab, string user, string password){
         }
         aux=aux->sig;
     }
-    
     file<<fechaActual<<"CHECKED CREDENTIALS" << endl;
+    
+    switch(log){
+        case 1:
+        file<<fechaActual<<"INVALID USER: " << user << endl;
+        break;
+        
+        case 2:
+        file<<fechaActual<<"INVALID PASSWORD: "<< password << endl;
+        break;
+
+        case 3:
+        file<<fechaActual<<"USER IS DISABLED: " << user<< endl;
+        break;
+    }    
+
     return validation;
 }
+
 bool checkIfAdmin(listaUsers &cab, string user){
     //“E” = estándar o “A” =administrador
     listaUsers aux=cab;
@@ -98,7 +115,7 @@ bool checkIfAdmin(listaUsers &cab, string user){
     return admin;
 }
 
-//METODOS DE LA LISTA DE USUARIOS
+//METODOS DE LA LISTA DE USUARIOS LOGIN
 
 //Metodo para crear el nodo del user que se utiliza para loguearse al sistema
 nodoUsers *crearNodoUser(listaUsers &cab, string nombre, int codigo, char tipo, string user, string contra, bool activo){
@@ -117,15 +134,58 @@ nodoUsers *crearNodoUser(listaUsers &cab, string nombre, int codigo, char tipo, 
 }
 void crearListaUserLogging(listaUsers &cab, string nombre, int codigo, char tipo, string user, string contra, bool activo){
     nodoUsers *nuevo_nodo= crearNodoUser(cab,  nombre,  codigo,  tipo,  user,  contra,activo);
+    char* fechaActual= get_time();
     if(cab==NULL){
         cab=nuevo_nodo;
     }
     else{
         nuevo_nodo->sig=cab;
         cab=nuevo_nodo;
+        file<<fechaActual<<"CREATED USER: "<< user<<endl;
+    }
+}
+
+void borrarUserLogin(listaUsers &cab, string userToDelete){
+
+    //Se crean dos nodos para aux para poder unir la lista resultante y encontrar el nodo a eliminar
+    nodoUsers *aux; //Nodo a eliminar
+    nodoUsers *aux2; //Nodo que sirva para unir la lista
+    char* fechaActual= get_time(); //logging
+    
+    //Se valida la lista que no sea nula
+    if(cab != NULL){    
+    aux2=NULL;
+    //Se iguala el aux a borrar con la lista que se recibe como parametro
+    aux=cab;
     }
 
-}
+    //Se recorre la lista siempre y cuando no sea NULL ni el identificador único a eliminar
+    while((aux!=NULL) && (aux->user!=userToDelete)){
+            //Se coloca el aux2 en la posición actual del aux
+            aux2=aux;
+            //Y se mueve aux, indirectamente aux2 es el anterior de aux
+            aux=aux->sig;
+    }
+    //logging
+    file<<fechaActual<<"DELETED USER: "<< aux->user<<endl;
+    cout<<"DELETED USER: "<< aux->user<<endl;
+    system("pause");
+    if( aux2==NULL){
+        cab=cab->sig;
+        //Se borra el nodo aux
+        delete(aux);
+    }
+    else{
+        //Se une la lista antes de borrarla para evitar que quede aux2 apuntando a un NULL
+        aux2->sig=aux->sig;
+        //Se borra el nodo aux
+        delete (aux);
+    }
+
+ }    
+
+
+
 void crearAdminAndUserDefault(listaUsers &cab){
     /*Admin: Joseph Granados, 1, A, totto, Testing123!, true -  Sebastian Cheng, 2, A, scheng, Testing123!, true - Dummy Admin, 3, A, dummy, Testing123!, false
       Users: Joseph Granados, 4, E, tottoU, Testing123!, true -  Sebastian Cheng, 5, E, schengg, Testing123!, true - Dummy Admin, 6, E, dummyU, Testing123!, false*/
@@ -184,6 +244,61 @@ bool validationPassword (string password){
     file<<fechaActual<<"CHECKED PASSWORD REQUIREMENTS" << endl;
     return validation;
 }
+
+void actualizarNombre(listaUsers &cab, string user, string nombreNuevo){
+    char* fechaActual= get_time(); //logging
+    listaUsers aux;
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        aux=cab;
+        while((aux!=NULL) && (aux->user!=user)){
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"NOMBRE UPDATED FROM: "<< aux->nombre << " TO " << nombreNuevo <<endl;
+        aux->nombre=nombreNuevo;
+
+    }
+}
+
+void actualizarContra(listaUsers &cab, string user, string contraNuevo){
+    char* fechaActual= get_time(); //logging
+    listaUsers aux;
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        aux=cab;
+        while((aux!=NULL) && (aux->user!=user)){
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"PASSWORD UPDATED FROM: "<< aux->contra << " TO " << contraNuevo <<endl;
+        aux->contra=contraNuevo;
+
+    }
+}
+
+void actualizarEstado(listaUsers &cab, string user, bool estado){
+    char* fechaActual= get_time(); //logging
+    listaUsers aux;
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        aux=cab;
+        while((aux!=NULL) && (aux->user!=user)){
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"PASSWORD UPDATED FROM: "<< aux->activo << " TO " << estado <<endl;
+        aux->activo=estado;
+
+    }
+}
+
 
 //METODO PARA LA LISTA DE ESPECIALIDADES
 
@@ -245,7 +360,6 @@ void mostrar(lista cab){
     char* fechaActual= get_time();
     file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
 }
-
 //Método que borra una especialidad, recibe una lista y el identificador único a eliminar
 void borrarEspecialidad(lista &cab, char identificador){
 
@@ -270,6 +384,8 @@ void borrarEspecialidad(lista &cab, char identificador){
     }
     //logging
     file<<fechaActual<<"DELETED ESPECIALIDAD: "<< aux->especialidad<<endl;
+    cout<<"DELETED ESPECIALIDAD: "<< aux->especialidad<<endl;
+    system("pause");
     if( aux2==NULL){
         cab=cab->sig;
         //Se borra el nodo aux
@@ -290,7 +406,7 @@ void actualizarEspecialidad(lista &cab, char identificador, char nuevo){
     lista aux;
     if(cab== NULL){
         cout<<"ERROR, LISTA VACIA" << endl;
-        file<<fechaActual<<"ERROR, LISTA VACIA: " << &cab<<endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE ESPECIALIDAD: " << &cab<<endl;
     }
     else{
         aux=cab;
@@ -382,8 +498,123 @@ void menuEspecialidades (){
 }
 
 
-void menuUsers(){
+void menuUsers(listaUsers listaU){
+    listaUsers Lista=listaU;
+    //Variables usada en el menu
+    char* fechaActual= get_time();
+    int opc,opc2,codigo,opc3,opc4;
+    string nombre,user,contra,userT,passwordT,toDelete,toUpdate,newName;
+    char tipo; 
+    bool activo,confirmationLogin,passwordValidation,newState;
+    file<<fechaActual<<"ADMIN SELECTED MENU USERS"<<endl;
+    cout<<"BIENVENIDO AL MENU DE USER DE LOGIN"<<endl;
+    do{
+        system("cls"); 
+        cout<<"Elija alguna opcion: "<< endl;
+        cout<<" 1. Agregar Users \n 2. Borrar Algun User \n 3. Actualizar algun user <CHECK> \n 4. Mostrar Lista Actual De Users \n :";
+        cin>>opc;
+        switch(opc){
+            case 1:
+            system("cls");
+                cout<<"HEMOS AGREGADO LOS USUARIOS POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNO MAS? \n 1. Si 2. NO \n";
+                cin>>opc2;
+                    switch(opc2){
+                        case 1:
+                            cout<<"Ingrese el nombre: "<< endl;
+                            cin>> nombre;
+                            cout<<"Ingrese el user: " << endl;
+                            cin>> user;
+                            cout<<"Ingrese el codigo identificador: " << endl;
+                            cin>> codigo;
+                            cout<< "Ingrese el tipo de user ('E' = estandar o 'A' =administrador)"<<endl;
+                            cin>> tipo;
+                            cout<<"Ingrese el password" << endl;
+                            cin>>contra;
+                            passwordValidation=validationPassword(contra);
+                            if(passwordValidation){
+                                cout<<"LA CONTRASENIA CUMPLE REQUISITOS"<< endl;
+                                system("pause");
+                            }
+                            else{
+                                cout<<"LA CONTRASENIA NO CUMPLE REQUISITOS, VOLVIENDO AL MENU PRINCIPAL"<< endl;
+                                system("pause");
+                                break;
+                            }
+                            cout<<"Ingrese el estado: 1. Activo 2. Inactivo" << endl;
+                            cin>>activo;
 
+                            crearListaUserLogging(Lista,  nombre,  codigo,  tipo,  user,  contra,activo);
+                            cout<<"DESEA PROBAR SI LAS CREDENCIALES DEL USUARIO NUEVO SIRVEN? 1. Si 2. No \n" << endl;
+                            cin>> opc3;
+                            if(opc3==1){
+                                cout<< "USER: ";
+                                cin>>userT;
+                                cout<<"PASSWORD: ";
+                                cin>>passwordT;
+                                confirmationLogin=login(Lista,userT, passwordT);
+                                    if(confirmationLogin){
+                                        cout<<"El user funciona para loguearse"<<endl;
+                                        file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user<<endl;
+                                        system("pause");
+                                    }
+                                    else{
+                                        cout<<"LAS CREDENCIALES FALLAN, REVISE EL USUARIO"<< endl;
+                                        file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user << "AND FAILED"<<endl;
+                                        system("pause");
+                                    }
+                            }
+                        break;
+                        case 2:
+                            system("cls");
+                            cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
+                            system("pause");
+                            break;
+                    }
+            break;
+            case 2:
+                system("cls");
+                cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
+                cout<<"Ingrese el usuario que quiere borrar"<< endl;
+                cin>>toDelete;
+                borrarUserLogin(Lista,toDelete);
+            break;
+            
+            case 3:
+                system("cls");
+                cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
+                cout<<"Ingrese el user al que quiere realizarle una actualizacion\n:";
+                cin>>toUpdate;
+                system("cls");
+                cout<<"Que desea actualizar? \n 1. Nombre \n 2. Password \n 3. Estado (True o False)\n 4. Salir\n:";
+                cin>>opc4;
+                switch(opc4){
+                    case 1:
+                        system("cls");
+                        cout<<"Ingrese Nombre Nuevo"<< endl;
+                        cin>>newName;
+                        actualizarNombre(Lista,toUpdate,newName);
+                    break;
+                    case 2:
+                        system("cls");
+                        cout<<"Ingrese Contrasenia Nueva"<< endl;
+                        cin>>newName;
+                        actualizarContra(Lista,toUpdate,newName);
+                    break;
+                    case 3:
+                        system("cls");
+                        cout<<"Ingrese el nuevo estado"<< endl;
+                        actualizarEstado(Lista,toUpdate,newState);
+                    break;
+                }
+            break;
+            case 4:
+                system("cls"); 
+                mostrarUsers(Lista);
+                system("pause");
+            break;
+        }
+
+    }while(opc!=5);
 }
 
 void menuPacientes(){
@@ -423,7 +654,7 @@ void menuPrincipal(){
             cin>>opc;
             switch(opc){
                 case 1:
-                menuUsers();
+                menuUsers(listaU);
                 break;
                 case 2:
                 menuEspecialidades();
