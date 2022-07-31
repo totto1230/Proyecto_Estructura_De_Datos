@@ -71,6 +71,7 @@ bool login(listaUsers &cab, string user, string password){
             if(aux->contra==password){
                 log=3;
                 if(aux->activo==true){
+                    log=4;
                     validation=true;
                     cout<< "LOGGED AS " << aux->nombre<< endl;
                     file<<fechaActual<<"AND LOGGED AS " << aux->nombre<< endl;
@@ -92,6 +93,10 @@ bool login(listaUsers &cab, string user, string password){
 
         case 3:
         file<<fechaActual<<"USER IS DISABLED: " << user<< endl;
+        break;
+
+        case 4:
+        file<<fechaActual<<user<<" IS ABLE TO LOGIN" << endl;
         break;
     }    
 
