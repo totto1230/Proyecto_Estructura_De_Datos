@@ -38,10 +38,19 @@ void logging(){
 
 //ESTRUCTURAS:
 
-//Se declara la estructura para la lista principal de doctores
-struct nodo{
+//Se declara la estructura para la secondaria de doctores
+struct nodoDoctores{
+    string nombreDoc;
     char especialidad;
-    nodo *sig;
+    int codigo;
+    nodoDoctores *sig;
+};
+
+//Se declara la estructura para la lista principal de doctores
+struct nodoEspecia{
+    char especialidad;
+    nodoEspecia *sig;
+    nodoDoctores *doc;
 };
 //Se declara la estructura para lista de usuarios
 struct nodoUsers{
@@ -54,8 +63,9 @@ struct nodoUsers{
     nodoUsers *sig;
 };
 //Se crea un typo de estructura tipo nodo para poder usarla en el código
-typedef struct nodo *lista;
+typedef struct nodoEspecia *lista;
 typedef struct nodoUsers *listaUsers;
+typedef struct nodoDoctores *listaDocs;
 
 //METODOS PARA EL LOGIN
 
@@ -211,8 +221,11 @@ void mostrarUsers(listaUsers cab){
     else{
         auxRecorrer=cab;
         while(auxRecorrer!=NULL){
+            cout<<"NOMBRE: " <<auxRecorrer->nombre << endl;
+            cout<<"CODIGO: " <<auxRecorrer->codigo<< endl;
+            cout<<"USUARIO: " << auxRecorrer->user<< endl;
+            cout<<"ESTADO: " <<auxRecorrer->activo<<endl;
             cout<<" <----------> "<< endl;
-            cout<< auxRecorrer->nombre << "\n" <<auxRecorrer->codigo<< "\n" << auxRecorrer->user<< "\n" <<auxRecorrer->activo<< "\n <---------->";
             auxRecorrer=auxRecorrer->sig;
         }
     }
@@ -308,17 +321,27 @@ void actualizarEstado(listaUsers &cab, string user, bool estado){
 //METODO PARA LA LISTA DE ESPECIALIDADES
 
 //Este método crea un Nodo de Especialidades el cual recibe de parametro una cabeza de tipo lista 
-nodo *crearNodoDocs(lista &cab, char especialidad){
+nodoEspecia *crearNodoDocs(lista &cab, char especialidad){
     char* fechaActual= get_time();
-    nodo *nuevo_nodo= new (struct nodo);
+    nodoEspecia *nuevo_nodo= new (struct nodoEspecia);
     nuevo_nodo->especialidad=especialidad;
     nuevo_nodo->sig=NULL;
+    nuevo_nodo->doc=NULL;
     return nuevo_nodo;
     file<<fechaActual<<"NODO ESPECIALIDAD CREADO" << endl;
 }
-
+nodoDoctores *crearNodoDoctores(string nombre , char especialidad, int codigo){
+    char* fechaActual= get_time();
+    nodoDoctores *nuevo_nodo= new (struct nodoDoctores);
+    nuevo_nodo->nombreDoc=nombre;
+    nuevo_nodo->especialidad=especialidad;
+    nuevo_nodo->codigo=codigo;
+    nuevo_nodo->sig=NULL;
+    return nuevo_nodo;
+    file<<fechaActual<<"NODO DOCTOR CREADO" << endl;
+}
 void crearListaPrincipalDocs(lista &cab, char especialidad){
-    nodo *nuevo_nodo= crearNodoDocs(cab, especialidad);
+    nodoEspecia *nuevo_nodo= crearNodoDocs(cab, especialidad);
     if(cab==NULL){
         cab=nuevo_nodo;
     }
@@ -328,7 +351,48 @@ void crearListaPrincipalDocs(lista &cab, char especialidad){
     }
 
 }
-
+void agregarDocs(lista &cab, string nombre , char especialidad, int codigo){
+    lista aux;
+    nodoDoctores *aux1;
+    nodoDoctores *nuevo= crearNodoDoctores(nombre,especialidad,codigo);
+    char* fechaActual= get_time();
+    if(cab==NULL){
+        cout<<"LISTA VACIA"<< endl;
+        file<<fechaActual<<"LISTA &: "<< cab  << " VACIA" << endl;
+    } 
+    else{
+        aux=cab;
+        while(aux!=NULL){
+            if(aux->especialidad==toupper(especialidad)){
+                if(aux->doc==NULL){
+                    aux->doc=nuevo;
+                }
+                else{
+                    aux1=aux->doc;
+                    while(aux1->sig!=NULL){
+                        aux1=aux1->sig;
+                    }
+                    aux1->sig=nuevo;
+                }
+                aux1=NULL;
+            }
+            aux=aux->sig;
+        }
+    }
+    file<<fechaActual<<"ADDED DOC: "<< codigo << endl;
+}
+void crearNodosListaSecundariaDefault(lista &cab){
+    /*Doctores de ejemplo:
+        "Julian Jimenez", 'C' , 1
+        "Pepe Gomez", 'D', 2
+        "Julian Granados", 'C' , 5
+        "Doctor Mentiras", 'N', 3
+    */
+    agregarDocs(cab,"Julian Jimenez", 'C' , 1);
+    agregarDocs(cab,"Julian Granados", 'C' , 5);
+    agregarDocs(cab,"Pepe Gomez", 'D', 2);
+    agregarDocs(cab,"Doctor Mentiras", 'N', 3);
+}
 void crearNodosListaPrincipalDefaultEspecialidades(lista &cab){
     /*  Especialidades by default:
         C=Cardiologia
@@ -349,28 +413,46 @@ void crearNodosListaPrincipalDefaultEspecialidades(lista &cab){
     crearListaPrincipalDocs(cab,'D');
     crearListaPrincipalDocs(cab,'C');
 }
-
 void mostrar(lista cab){
     lista auxRecorrer;
+    nodoDoctores *aux2;
+    char* fechaActual= get_time();
     if(cab==NULL){
         cout<<"LISTA NULL" << endl;
     }
     else{
         auxRecorrer=cab;
         while(auxRecorrer!=NULL){
-            cout<< auxRecorrer->especialidad << " ----------> ";
+
+            cout<<"ESPECIALIDAD: "<< auxRecorrer->especialidad << "\n ";
+                if(auxRecorrer->doc==NULL){
+                    cout<<"NINGUN DOCTOR EN ESTA ESPECIALIDAD"<<endl;
+                    cout<< "************************"<<endl;
+                    file<<fechaActual<<" NO DOCTORES EN ESPECIALIDAD: "<< auxRecorrer->especialidad<< endl;
+                }
+                else{
+                    aux2=auxRecorrer->doc;
+                    while(aux2!=NULL){
+                        cout<< "************************"<<endl;
+                        cout<<"DOCTOR: "<< aux2->nombreDoc << endl;
+                        cout<<"Especialidad Del Doctor: "<< aux2->especialidad << endl;
+                        cout<<"CODIGO: " << aux2->codigo <<endl;
+                        aux2=aux2->sig;
+                    }
+                }
+
             auxRecorrer=auxRecorrer->sig;
         }
     }
-    char* fechaActual= get_time();
+    
     file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
 }
 //Método que borra una especialidad, recibe una lista y el identificador único a eliminar
 void borrarEspecialidad(lista &cab, char identificador){
 
     //Se crean dos nodos para aux para poder unir la lista resultante y encontrar el nodo a eliminar
-    nodo *aux; //Nodo a eliminar
-    nodo *aux2; //Nodo que sirva para unir la lista
+    nodoEspecia *aux; //Nodo a eliminar
+    nodoEspecia *aux2; //Nodo que sirva para unir la lista
     char* fechaActual= get_time(); //logging
     
     //Se valida la lista que no sea nula
@@ -404,8 +486,6 @@ void borrarEspecialidad(lista &cab, char identificador){
     }
 
  }    
-
-
 void actualizarEspecialidad(lista &cab, char identificador, char nuevo){
     char* fechaActual= get_time(); //logging
     lista aux;
@@ -423,9 +503,84 @@ void actualizarEspecialidad(lista &cab, char identificador, char nuevo){
 
     }
 }
+int generarCodigo(){
+    int codigo= rand()% (0-1000);
+    return codigo;
+}
+
+bool validarCodigo(int codigo, lista cab){
+    lista aux;
+    nodoDoctores *aux2;
+    bool validation=true;
+    aux=cab;
+    while(aux!=NULL){
+        aux2=aux->doc;
+        while(aux2!=NULL){
+            if(aux2->codigo==codigo){
+                validation=false;
+            }
+            aux2=aux2->sig;
+        }
+        aux=aux->sig;
+    }
+    return validation;
+}
 
 //METODOS USADOS PARA PRESENTAR MENUS AL USER/ADMIN
+void menuDoctores(lista listaEspecialidades){
+    lista Lista=listaEspecialidades;
+    int opc,codigo;
+    string nombre;
+    bool unico;
+    char especialidad;
+    char* fechaActual= get_time();
+    file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
+    system("cls"); 
+    cout<<"BIENVENIDO AL MENU DE ADMINISTRACION DE DOCTORES!"<< endl;
+    do{
+        system("cls"); 
+        cout<<"Seleccione alguna opcion: \n 1. Agregar un nuevo doctor \n 2. Eliminar algun doctor \n 3. Mostrar Lista \n 4. Volver al menu anterior \n:";
+        cin>>opc;
+        switch(opc){
+            case 1:
+            system("cls"); 
+            cout<< "INGRESE EL NOMBRE: "<< endl;
+            cin>>nombre;
+            cout<< "INGRESE LA ESPECIALIDAD: "<< endl;
+            cin>> especialidad;
+            codigo=generarCodigo();
+            unico=validarCodigo(codigo, Lista);
+            if(unico){
+                cout<<"El codigo creado para el doctor : "<< nombre << " es " << codigo << endl;
+                agregarDocs(Lista, nombre,especialidad,codigo);
+                system("pause");
+            }
+            else{
+                while(!unico){
+                    codigo=generarCodigo();
+                    unico=validarCodigo(codigo, Lista);
+                }
+                cout<<"El codigo creado para el doctor : "<< nombre << " es " << codigo << endl;
+                agregarDocs(Lista, nombre,especialidad,codigo);
+                system("pause");
+            }
+            cout<<" DOCTOR AGREGADO" <<endl;
+            system("pause");
+            break;
 
+            case 2:
+
+            break;
+
+            case 3:
+                system("cls");
+                mostrar(Lista);
+                system("pause");
+            break;
+        }
+
+    }while(opc!=4);
+}
 void menuEspecialidades (){
     lista Lista=NULL;
     //Variables usada en el menu
@@ -435,10 +590,11 @@ void menuEspecialidades (){
     char* fechaActual= get_time();
     file<<fechaActual<<"ADMIN SELECTED MENUESPECIALIDADES"<<endl;
     crearNodosListaPrincipalDefaultEspecialidades(Lista);
+    crearNodosListaSecundariaDefault(Lista);
     do{       
         system("cls"); 
         cout<<"Bienvenido Admin al menu de especialidades medicas! Elija alguna opcion: "<< endl;
-        cout<<" 1. Agregar Especialidades \n 2. Borrar Alguna Especialidad \n 3. Actualizar el nombre de alguna especialidad \n 4. Mostrar Lista Actual \n :";
+        cout<<" 1. Agregar Especialidades \n 2. Borrar Alguna Especialidad \n 3. Actualizar el nombre de alguna especialidad \n 4. Mostrar Lista Actual \n 5. Administrar Doctores \n 6. Salir\n:";
         cin>>opc;
         switch(opc){
             case 1:
@@ -498,11 +654,15 @@ void menuEspecialidades (){
             mostrar(Lista);
             system("pause");
             break;      
+
+            case 5:
+            system("cls");
+            menuDoctores(Lista);
+            system("pause");
+            break;
         }
-    }while(opc!=5);
+    }while(opc!=6);
 }
-
-
 void menuUsers(listaUsers listaU){
     listaUsers Lista=listaU;
     //Variables usada en el menu
@@ -621,15 +781,12 @@ void menuUsers(listaUsers listaU){
 
     }while(opc!=5);
 }
-
 void menuPacientes(){
 
 }
-
 void menuCitas(){
 
 }
-
 void menuPrincipal(){
     logging();
     listaUsers listaU=NULL;
@@ -653,7 +810,7 @@ void menuPrincipal(){
             system("cls"); 
             int opc;
             cout<<"Bienvenido Admin!, favor elegir alguna opcion"<< endl;
-            cout<<" 1. Administrar Usuarios de Login  2. Administrar Doctores  3. Administrar Pacientes 4. Salir" << endl;
+            cout<<" 1. Administrar Usuarios de Login  2. Administrar Doctores Y Especialidades 3. Administrar Pacientes 4. Salir" << endl;
             cout<<"POR SEGURIDAD, UNA VEZ SELECCIONADA UNA INTERFAZ DE ADMINISTRACION TENDRA QUE LOGUEARSE OTRA VEZ PARA CAMBIAR LA MISMA"<< endl;
             cout<<": ";
             cin>>opc;
