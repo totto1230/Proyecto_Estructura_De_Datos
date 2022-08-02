@@ -4,6 +4,7 @@
 #include <ctime>
 #include <cstring>
 #include <cctype>
+#include <windows.h>
 
 //Se define que se va a utilizar el namespace "std"
 using namespace std;
@@ -17,10 +18,9 @@ ofstream file;
 
 //Este metodo retorna un puntero char el cual contiene la fecha del momento para poder hacer logging and auditing
 char* get_time() {
-    // current date/time based on current system
+    //Tiempo actual de la computadora que ejecuta el programa
    time_t now = time(0);
-   
-   // convert now to string form
+   //Convierte ese valor a un puntero *char
    char* dt = ctime(&now);
    return dt;
 }
@@ -69,29 +69,43 @@ typedef struct nodoDoctores *listaDocs;
 
 //METODOS PARA EL LOGIN
 
+//Metodo que retorna un booleano que verifica si un usuario se puede loguear o no
 bool login(listaUsers &cab, string user, string password){
+    //Se crea un aux local para recorrer la lista y se iguala a la lista que recibe como parámetro
     listaUsers aux=cab;
+    //Se establece la variable bool que va a determinar si el login es posible
     bool validation=false;
+    //Variable para determinar porqué falla el login
     int log=0;
+    //Logging
     char* fechaActual= get_time();
+    //While que recorre la lista
     while(aux!=NULL){
+        //Si no entra al if, significa que el user no existe
         log=1;
+        //Verifica si el usuario existe en la lista
         if(aux->user==user){
+            //Si no entra al if, significa que la contraseñia está mala
             log=2;
+            //Verifica si la contraseña hace match al de la lista
             if(aux->contra==password){
+                //Si no entra al if, significa que el user está desactivado
                 log=3;
+                //Verifica si el usuario está activo
                 if(aux->activo==true){
                     log=4;
+                    //Solo si se validan esas tres condiciones, retorna un true
                     validation=true;
                     cout<< "LOGGED AS " << aux->nombre<< endl;
                     file<<fechaActual<<"AND LOGGED AS " << aux->nombre<< endl;
                 }
             }
         }
+        //Recorre la lista
         aux=aux->sig;
     }
-    file<<fechaActual<<"CHECKED CREDENTIALS" << endl;
-    
+    //En base la variable log, se puede determinar el error
+    file<<fechaActual<<"CHECKED CREDENTIALS and: " ;
     switch(log){
         case 1:
         file<<fechaActual<<"INVALID USER: " << user << endl;
@@ -113,20 +127,24 @@ bool login(listaUsers &cab, string user, string password){
     return validation;
 }
 
+//Metodo que retorna un booleano que verifica si un usuario es admin o no
 bool checkIfAdmin(listaUsers &cab, string user){
     //“E” = estándar o “A” =administrador
+    //Se crea un aux local para recorrer la lista y se iguala a la lista que recibe como parámetro
     listaUsers aux=cab;
+    //Variable que se va a retorna para verificar si es admin
     bool admin=false;
     char* fechaActual= get_time();
-    
+    //Recorre la lista siempre y cuando sea diferente al usuario que recibe como parámetro
     while(aux->user!=user){
         aux=aux->sig;
     }
-
+    //Si contiene una "A" significa que es admin por lo que la variable bool es true
     if(aux->tipo=='A'){
         admin=true;
     }
-
+    char* fechaActual= get_time();
+    file<<fechaActual<<"CHECKED IF " << user << " IS ADMIN AND IT IS: "<< admin<<endl;
     return admin;
 }
 
@@ -147,6 +165,7 @@ nodoUsers *crearNodoUser(listaUsers &cab, string nombre, int codigo, char tipo, 
     return nuevo_nodo;
     file<<fechaActual<<"NODO USER CREADO" << endl;
 }
+//Se crea una lista simple
 void crearListaUserLogging(listaUsers &cab, string nombre, int codigo, char tipo, string user, string contra, bool activo){
     nodoUsers *nuevo_nodo= crearNodoUser(cab,  nombre,  codigo,  tipo,  user,  contra,activo);
     char* fechaActual= get_time();
@@ -159,7 +178,7 @@ void crearListaUserLogging(listaUsers &cab, string nombre, int codigo, char tipo
         file<<fechaActual<<"CREATED USER: "<< user<<endl;
     }
 }
-
+//Método para borrar un usuario de la lista para login
 void borrarUserLogin(listaUsers &cab, string userToDelete){
 
     //Se crean dos nodos para aux para poder unir la lista resultante y encontrar el nodo a eliminar
@@ -196,11 +215,8 @@ void borrarUserLogin(listaUsers &cab, string userToDelete){
         //Se borra el nodo aux
         delete (aux);
     }
-
  }    
-
-
-
+//Método para crear los usuarios por defecto para loguearse
 void crearAdminAndUserDefault(listaUsers &cab){
     /*Admin: Joseph Granados, 1, A, totto, Testing123!, true -  Sebastian Cheng, 2, A, scheng, Testing123!, true - Dummy Admin, 3, A, dummy, Testing123!, false
       Users: Joseph Granados, 4, E, tottoU, Testing123!, true -  Sebastian Cheng, 5, E, schengg, Testing123!, true - Dummy Admin, 6, E, dummyU, Testing123!, false*/
@@ -213,13 +229,18 @@ void crearAdminAndUserDefault(listaUsers &cab){
     crearListaUserLogging(cab, "Sebastian Cheng", 5, 'E', "schengg", "Testing123!", true);
     crearListaUserLogging(cab, "Dummy User", 6, 'E', "dummyU", "Testing123!", false);
 }
+//Método que muestra los usuarios de la lista de login
 void mostrarUsers(listaUsers cab){
+    //Aux local para recorrer la lista
     listaUsers auxRecorrer;
+    //Se verifica si la lista está vacía
     if(cab==NULL){
-        cout<<"LISTA NULL" << endl;
+        cout<<"LISTA VACÍA" << endl;
     }
     else{
+        //Se iguala la lista local a la que recibe como parámetro
         auxRecorrer=cab;
+        //Recorre la lista siempre y cuando no sea NULL y me imprime el contenido
         while(auxRecorrer!=NULL){
             cout<<"NOMBRE: " <<auxRecorrer->nombre << endl;
             cout<<"CODIGO: " <<auxRecorrer->codigo<< endl;
@@ -232,82 +253,120 @@ void mostrarUsers(listaUsers cab){
     char* fechaActual= get_time();
     file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
 }
-
+//Método que retorna un bool y verifica si la contraseña cumple los requisitos
 bool validationPassword (string password){
    	char* fechaActual= get_time();
-    bool validation=false;
-    int lenght= password.length(),i=0;
-
+    //Variable bools que dictamina si es valida la password o no
+    bool validation=false,validationE=false,validationC=false;
+    //Variable con el tamaño del string password y variable i para el while
+    int lenght= password.length(),i=0,j=0;
+    //Declara un array con el tamaño +1 ya que si no faltaría el último char
     char char_array[lenght+1];
+    //Arreglos con los requisitos
     char nums[]={'1','2','3','4','5','6','7','8','9','0'};
     char especialChar[]={'!','#','$','%'};
-
+    //Copia el string password al arreglo de char
     strcpy(char_array, password.c_str());
-    
+    //Verifica que la contraseña sea mayor a 8 chars
     if(lenght<8){
         validation=false;
         file<<fechaActual<<"PASSWORD IS SHORTER THAN 8" << endl;
     }
     else{
+        //Recorre el array de chars con la contraseña
         while(i<lenght){
-                file<<fechaActual<<"PASSWORD DOES NOT HAVE NUMBERS OR SPECIAL CHARS" << endl;
+                //Verifica si tiene un num o char especial
         		if (char_array[i] == nums[0] || char_array[i] == nums[1] || char_array[i] == nums[2] || char_array[i] == nums[3] || char_array[i] == nums[4] || char_array[i] == nums[5] || char_array[i] == nums[6] || char_array[i] == nums[7] || char_array[i] == nums[8] || char_array[i] == nums[9] || char_array[i] == nums[10]
 				|| char_array[i]== especialChar[0]|| char_array[i]== especialChar[1] || char_array[i]== especialChar[2] || char_array[i]== especialChar[3] || char_array[i]== especialChar[0]|| char_array[i]== especialChar[1] || char_array[i]== especialChar[2] || char_array[i]== especialChar[3]){
-							validation=true;
+                        validationE=true;
 			}
 			
         i++;
         }
+        //Verifica si hay un char con mayus en el array
+        while (j<lenght){
+            if(isupper(char_array[j])){
+                validationC=true;
+            }
+            j++;
+        }
+
     }
-    file<<fechaActual<<"CHECKED PASSWORD REQUIREMENTS" << endl;
+    //Cheque los booleanos y solo si ambos son true significa que la contraseña cumple los requisitos
+    if(validationE==true && validationC==true){
+        validation=true;
+    }
+    else{
+        validation=false;
+    }
+
+    if(validationE==false){
+        file<<fechaActual<<"PASSWORD DOES NOT HAVE NUMBERS OR SPECIAL CHARS" << endl;
+    }
+    else if(validationC==false){
+        file<<fechaActual<<"PASSWORD DOES NOT HAVE CAPITAL LETTERS" << endl;
+    }
+
+    file<<fechaActual<<"CHECKED PASSWORD REQUIREMENTS AND PASSWORD: "<< validation << endl;
     return validation;
 }
-
+//Método que sirve para actualizar un nombre de un user para loguearse
 void actualizarNombre(listaUsers &cab, string user, string nombreNuevo){
     char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
     listaUsers aux;
     if(cab== NULL){
         cout<<"ERROR, LISTA VACIA" << endl;
         file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
     }
     else{
+        //Se iguala la lista a la lista que recibe como parámetro
         aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL y el usuario en esa posición sea diferente al usuario que recibe como parámetro
         while((aux!=NULL) && (aux->user!=user)){
          aux=aux->sig;
         }
         file<<fechaActual<<"NOMBRE UPDATED FROM: "<< aux->nombre << " TO " << nombreNuevo <<endl;
+        //Se actualiza el nombre
         aux->nombre=nombreNuevo;
 
     }
 }
-
+//Método para actualizar la contra de un user para loguearse
 void actualizarContra(listaUsers &cab, string user, string contraNuevo){
     char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
     listaUsers aux;
     if(cab== NULL){
         cout<<"ERROR, LISTA VACIA" << endl;
-        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A PASSWORD: " << &cab<<endl;
     }
     else{
+        //Se iguala la lista a la lista que recibe como parámetro
         aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL y el usuario en esa posición sea diferente al usuario que recibe como parámetro
         while((aux!=NULL) && (aux->user!=user)){
          aux=aux->sig;
         }
         file<<fechaActual<<"PASSWORD UPDATED FROM: "<< aux->contra << " TO " << contraNuevo <<endl;
+        //Se actualiza la contraseña
         aux->contra=contraNuevo;
 
     }
 }
-
+//Método para actualizar el estado de un user para loguearse
 void actualizarEstado(listaUsers &cab, string user, bool estado){
     char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
     listaUsers aux;
     if(cab== NULL){
         cout<<"ERROR, LISTA VACIA" << endl;
-        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A ESTADO: " << &cab<<endl;
     }
     else{
+        //Se iguala la lista a la lista que recibe como parámetro
         aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL y el usuario en esa posición sea diferente al usuario que recibe como parámetro
         while((aux!=NULL) && (aux->user!=user)){
          aux=aux->sig;
         }
@@ -316,8 +375,6 @@ void actualizarEstado(listaUsers &cab, string user, bool estado){
 
     }
 }
-
-
 //METODO PARA LA LISTA DE ESPECIALIDADES
 
 //Este método crea un Nodo de Especialidades el cual recibe de parametro una cabeza de tipo lista 
@@ -388,7 +445,9 @@ void crearNodosListaSecundariaDefault(lista &cab){
         "Julian Granados", 'C' , 5
         "Doctor Mentiras", 'N', 3
     */
-    agregarDocs(cab,"Julian Jimenez", 'C' , 1);
+    char* fechaActual= get_time();
+    file<<fechaActual<<"ADDED TEST DOCS"<<endl;
+    agregarDocs(cab,"Julian Jimenez", 'C' , 41);
     agregarDocs(cab,"Julian Granados", 'C' , 5);
     agregarDocs(cab,"Pepe Gomez", 'D', 2);
     agregarDocs(cab,"Doctor Mentiras", 'N', 3);
@@ -457,9 +516,9 @@ void borrarEspecialidad(lista &cab, char identificador){
     
     //Se valida la lista que no sea nula
     if(cab != NULL){    
-    aux2=NULL;
-    //Se iguala el aux a borrar con la lista que se recibe como parametro
-    aux=cab;
+        aux2=NULL;
+        //Se iguala el aux a borrar con la lista que se recibe como parametro
+        aux=cab;
     }
 
     //Se recorre la lista siempre y cuando no sea NULL ni el identificador único a eliminar
@@ -486,6 +545,7 @@ void borrarEspecialidad(lista &cab, char identificador){
     }
 
  }    
+
 void actualizarEspecialidad(lista &cab, char identificador, char nuevo){
     char* fechaActual= get_time(); //logging
     lista aux;
@@ -504,11 +564,14 @@ void actualizarEspecialidad(lista &cab, char identificador, char nuevo){
     }
 }
 int generarCodigo(){
+    char* fechaActual= get_time(); //logging
     int codigo= rand()% (0-1000);
+    file<<fechaActual<<"Generated codigo: " << codigo <<endl;
     return codigo;
 }
 
 bool validarCodigo(int codigo, lista cab){
+    char* fechaActual= get_time(); //logging
     lista aux;
     nodoDoctores *aux2;
     bool validation=true;
@@ -523,13 +586,80 @@ bool validarCodigo(int codigo, lista cab){
         }
         aux=aux->sig;
     }
+    file<<fechaActual<<"Validated if codigo: " << codigo  << " is unique and it is : " << validation<<endl;
     return validation;
 }
+char buscarEspecialidad(lista &cab, int identificador){
+    lista aux=cab;
+    nodoDoctores *aux2;
+    char especialidad;
+    while(aux!=NULL){
+        aux2=aux->doc;
+        while(aux2!=NULL){
+            if(aux2->codigo==identificador){
+                especialidad=aux2->especialidad;
+            }
+            aux2=aux2->sig;
+        }
+        aux=aux->sig;
+    }
+    char* fechaActual= get_time();
+    file<<fechaActual<<"FOUND THE ESPECIALIDAD OF: "<< identificador << " - "<< especialidad <<endl;
+    return especialidad;
+}
+
+bool canIDelete(lista &cab,char especialidad){
+    lista aux=cab;
+    nodoDoctores *aux2;
+    bool validation=false;
+    while(aux!=NULL){
+        if(aux->especialidad==especialidad){
+            if(aux->doc==NULL){
+                validation=true;
+            }
+        }
+        aux=aux->sig;
+    }
+    char* fechaActual= get_time();
+    file<<fechaActual<<"VERIFIED IF "<< especialidad << " can be deleted and :" << validation<<endl;
+    return validation;
+}
+
+
+
+
+//----------------------Check----------------------
+void borrarDoctor(lista &cab, int identificador){
+    lista aux=cab;
+    nodoDoctores *aux2;
+    nodoDoctores *aux3;
+    char especialidad= buscarEspecialidad(aux, identificador);
+    while(aux!=NULL){
+        if(aux->especialidad==especialidad){
+            aux2=aux->doc;
+            while((aux2!=NULL)&& (aux2->codigo!=identificador)){
+                aux3=aux2;
+                aux2=aux2->sig;
+            }
+            if(aux2->codigo==identificador){
+                aux3=aux2;
+                aux3->sig=aux2->sig;
+                delete(aux2);
+            }
+        }
+        aux=aux->sig;
+    }
+}
+void borrarTodosLosDoctores(){
+
+}
+//----------------------Check----------------------
+
 
 //METODOS USADOS PARA PRESENTAR MENUS AL USER/ADMIN
 void menuDoctores(lista listaEspecialidades){
     lista Lista=listaEspecialidades;
-    int opc,codigo;
+    int opc,codigo, toDelete;
     string nombre;
     bool unico;
     char especialidad;
@@ -543,6 +673,7 @@ void menuDoctores(lista listaEspecialidades){
         cin>>opc;
         switch(opc){
             case 1:
+            file<<fechaActual<<"ADMIN SELECTED AGREGAR UN NUEVO DOCTOR "<< endl;
             system("cls"); 
             cout<< "INGRESE EL NOMBRE: "<< endl;
             cin>>nombre;
@@ -569,11 +700,17 @@ void menuDoctores(lista listaEspecialidades){
             break;
 
             case 2:
-
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED ELIMINAR A DOCTOR "<< endl;
+                cout<<"Ingrese el codigo del doctor que desea borrar: " << endl;
+                cin>>toDelete;
+                borrarDoctor(Lista,toDelete);
+                system("pause");
             break;
 
             case 3:
                 system("cls");
+                file<<fechaActual<<"ADMIN SELECTED MOSTRAR LISTA"<< endl;
                 mostrar(Lista);
                 system("pause");
             break;
@@ -584,9 +721,10 @@ void menuDoctores(lista listaEspecialidades){
 void menuEspecialidades (){
     lista Lista=NULL;
     //Variables usada en el menu
-    int opc,opc2;
+    int opc,opc2,opc3,i=0;
     char especialidades,toDelete,fromUpdate,toUpdate;
     string nombreEspecialidad;
+    bool check;
     char* fechaActual= get_time();
     file<<fechaActual<<"ADMIN SELECTED MENUESPECIALIDADES"<<endl;
     crearNodosListaPrincipalDefaultEspecialidades(Lista);
@@ -599,6 +737,7 @@ void menuEspecialidades (){
         switch(opc){
             case 1:
             system("cls");
+            file<<fechaActual<<"ADMIN SELECTED AGREGAR ESPECIALIDAD "<< endl;
             cout<<"HEMOS AGREGADO LAS ESPECIALIDADES POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNA MAS? \n 1. Si 2. NO 3. VER CODIGO DE ESPECIALIDADES \n :";
             cin>>opc2;
                 switch(opc2){
@@ -621,7 +760,7 @@ void menuEspecialidades (){
 
                     case 3:
                     system("cls");
-                    cout<<"By default: \n C=Cardiologia \n D=Dermatologia \n O=Oftalmologia \n N=Neurologia \n P=Pediatria \n U=Urologia \n R=Reumatologia \nUser Added: \n "<< especialidades <<"=" <<nombreEspecialidad<< endl;
+                    cout<<"By default: \n C=Cardiologia \n D=Dermatologia \n O=Oftalmologia \n N=Neurologia \n P=Pediatria \n U=Urologia \n R=Reumatologia \nUser Added: \n "<< especialidades<<"="<<nombreEspecialidad<<endl;
                     file<<fechaActual<<" PRINTED DESCRIPTIONS "<< endl;
                     system("pause");
                     break;
@@ -630,14 +769,39 @@ void menuEspecialidades (){
 
             case 2:
             system("cls");
+            file<<fechaActual<<"ADMIN SELECTED BORRAR ALGUNA ESPECIALIDAD "<< endl;
             cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
             cout<<"Ingrese el identificador de la especialidad que quiere borrar"<< endl;
             cin>>toDelete;
-            borrarEspecialidad(Lista,toDelete);
+            check=canIDelete(Lista,toDelete);
+            if(check){
+                file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and confirmed."<< endl;
+                borrarEspecialidad(Lista,toDelete);
+            }
+            else{
+                file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and rejected."<< endl;
+                cout<<"La especialidad no puede ser borrada porque hay doctores en la misma, desea eliminar todos los doctores de la especialidad: " << toDelete <<" ? 1. Si 2. No" <<endl;
+                cin>>opc3;
+                switch(opc3){
+                    case 1:
+                    system("cls");
+                    borrarTodosLosDoctores();
+                    cout<<"Todos los doctores han sido eliminados, intente eliminar la especialidad otra vez"<< endl;
+                    system("pause");
+                    break;
+
+                    case 2:
+                    system("cls");
+                    cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
+                    system("pause");
+                    break;
+                }
+            }
             break;
 
             case 3:
             system("cls");
+            file<<fechaActual<<"ADMIN SELECTED ACTUALIZAR ESPECIALIDAD "<< endl;
             cout<<"!!!!!"<< endl;
             cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
             cout<<"!!!!!"<< endl;
@@ -651,12 +815,14 @@ void menuEspecialidades (){
 
             case 4:
             system("cls");
+            file<<fechaActual<<"ADMIN SELECTED MOSTRAR LISTA "<< endl;
             mostrar(Lista);
             system("pause");
             break;      
 
             case 5:
             system("cls");
+            file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
             menuDoctores(Lista);
             system("pause");
             break;
@@ -680,11 +846,12 @@ void menuUsers(listaUsers listaU){
         cin>>opc;
         switch(opc){
             case 1:
+            file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
             system("cls");
-                cout<<"HEMOS AGREGADO LOS USUARIOS POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNO MAS? \n 1. Si 2. NO \n";
-                cin>>opc2;
-                    switch(opc2){
-                        case 1:
+            cout<<"HEMOS AGREGADO LOS USUARIOS POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNO MAS? \n 1. Si 2. NO \n";
+            cin>>opc2;
+            switch(opc2){
+                    case 1:
                             cout<<"Ingrese el nombre: "<< endl;
                             cin>> nombre;
                             cout<<"Ingrese el user: " << endl;
@@ -729,7 +896,7 @@ void menuUsers(listaUsers listaU){
                                     }
                             }
                         break;
-                        case 2:
+                    case 2:
                             system("cls");
                             cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
                             system("pause");
@@ -794,9 +961,15 @@ void menuPrincipal(){
     crearAdminAndUserDefault(listaU);
     string user, password;
     bool confirmationLogin,confirmationAdmin;
+    system("cls"); 
     cout<<"BIENVENIDO!, FAVOR INGRESAR SU USER Y PASSWORD" << endl;
     cout<< "USER: ";
     cin>>user;
+    //Comandos de Windows para esconder el input de la contraseña desde devc++
+    /*HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE); 
+    DWORD mode = 0;
+    GetConsoleMode(hStdin, &mode);
+    SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));*/
     cout<<"PASSWORD: ";
     cin>>password;
     confirmationLogin=login(listaU,user, password);
