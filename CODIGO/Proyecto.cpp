@@ -143,7 +143,6 @@ bool checkIfAdmin(listaUsers &cab, string user){
     if(aux->tipo=='A'){
         admin=true;
     }
-    char* fechaActual= get_time();
     file<<fechaActual<<"CHECKED IF " << user << " IS ADMIN AND IT IS: "<< admin<<endl;
     return admin;
 }
