@@ -474,6 +474,7 @@ void crearNodosListaPrincipalDefaultEspecialidades(lista &cab){
 void mostrar(lista cab){
     lista auxRecorrer;
     nodoDoctores *aux2;
+    int total=0;
     char* fechaActual= get_time();
     if(cab==NULL){
         cout<<"LISTA NULL" << endl;
@@ -495,6 +496,8 @@ void mostrar(lista cab){
                         cout<<"DOCTOR: "<< aux2->nombreDoc << endl;
                         cout<<"Especialidad Del Doctor: "<< aux2->especialidad << endl;
                         cout<<"CODIGO: " << aux2->codigo <<endl;
+                        total=total+1;
+                        cout<<"TOTAL DOCTORES: " << total << endl;
                         aux2=aux2->sig;
                     }
                 }
@@ -502,9 +505,41 @@ void mostrar(lista cab){
             auxRecorrer=auxRecorrer->sig;
         }
     }
-    
     file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
 }
+
+int totalD(lista cab){
+    lista auxRecorrer;
+    nodoDoctores *aux2;
+    int total=0;
+    char* fechaActual= get_time();
+    if(cab==NULL){
+        cout<<"LISTA NULL" << endl;
+    }
+    else{
+        auxRecorrer=cab;
+        while(auxRecorrer!=NULL){
+
+            cout<<"ESPECIALIDAD: "<< auxRecorrer->especialidad << "\n ";
+                if(auxRecorrer->doc==NULL){
+                    cout<<"VACIA"<<endl;
+                }
+                else{
+                    aux2=auxRecorrer->doc;
+                    while(aux2!=NULL){
+                        total=total+1;
+                        aux2=aux2->sig;
+                    }
+                }
+
+            auxRecorrer=auxRecorrer->sig;
+        }
+    }
+    return total;
+}
+
+
+
 //Método que borra una especialidad, recibe una lista y el identificador único a eliminar
 void borrarEspecialidad(lista &cab, char identificador){
 
@@ -624,35 +659,35 @@ bool canIDelete(lista &cab,char especialidad){
     return validation;
 }
 
-
-
-
-//----------------------Check----------------------
 void borrarDoctor(lista &cab, int identificador){
     lista aux=cab;
     nodoDoctores *aux2;
     nodoDoctores *aux3;
+    char* fechaActual= get_time();
     char especialidad= buscarEspecialidad(aux, identificador);
     while(aux!=NULL){
         if(aux->especialidad==especialidad){
             aux2=aux->doc;
-            while((aux2!=NULL)&& (aux2->codigo!=identificador)){
+            while(aux2!=NULL){
+                if(aux2->codigo=identificador){
+                    aux3->sig=aux2->sig;
+                    aux2->sig=NULL;
+                    file<<fechaActual<<"DELETED DOCTOR :"<< aux2->codigo <<endl;
+                    delete(aux2);
+                }
                 aux3=aux2;
                 aux2=aux2->sig;
-            }
-            if(aux2->codigo==identificador){
-                aux3=aux2;
-                aux3->sig=aux2->sig;
-                delete(aux2);
             }
         }
         aux=aux->sig;
     }
 }
+
+//TO_DO
 void borrarTodosLosDoctores(){
 
 }
-//----------------------Check----------------------
+
 
 
 //METODOS USADOS PARA PRESENTAR MENUS AL USER/ADMIN
@@ -720,7 +755,7 @@ void menuDoctores(lista listaEspecialidades){
 void menuEspecialidades (){
     lista Lista=NULL;
     //Variables usada en el menu
-    int opc,opc2,opc3,i=0;
+    int opc,opc2,opc3,i=0,total;
     char especialidades,toDelete,fromUpdate,toUpdate;
     string nombreEspecialidad;
     bool check;
@@ -759,6 +794,7 @@ void menuEspecialidades (){
 
                     case 3:
                     system("cls");
+                    //TO_DO
                     cout<<"By default: \n C=Cardiologia \n D=Dermatologia \n O=Oftalmologia \n N=Neurologia \n P=Pediatria \n U=Urologia \n R=Reumatologia \nUser Added: \n "<< especialidades<<"="<<nombreEspecialidad<<endl;
                     file<<fechaActual<<" PRINTED DESCRIPTIONS "<< endl;
                     system("pause");
@@ -776,25 +812,12 @@ void menuEspecialidades (){
             if(check){
                 file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and confirmed."<< endl;
                 borrarEspecialidad(Lista,toDelete);
+                system("pause");
             }
             else{
                 file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and rejected."<< endl;
-                cout<<"La especialidad no puede ser borrada porque hay doctores en la misma, desea eliminar todos los doctores de la especialidad: " << toDelete <<" ? 1. Si 2. No" <<endl;
-                cin>>opc3;
-                switch(opc3){
-                    case 1:
-                    system("cls");
-                    borrarTodosLosDoctores();
-                    cout<<"Todos los doctores han sido eliminados, intente eliminar la especialidad otra vez"<< endl;
-                    system("pause");
-                    break;
-
-                    case 2:
-                    system("cls");
-                    cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
-                    system("pause");
-                    break;
-                }
+                cout<<"La especialidad no puede ser borrada porque hay doctores en la misma"<<endl;
+                system("pause");
             }
             break;
 
@@ -810,6 +833,7 @@ void menuEspecialidades (){
             cout<<"Ingrese el nuevo"<<endl;
             cin>>toUpdate;
             actualizarEspecialidad(Lista,fromUpdate,toUpdate);
+            system("pause");
             break;
 
             case 4:
