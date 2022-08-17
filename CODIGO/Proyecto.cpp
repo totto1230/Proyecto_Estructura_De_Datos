@@ -5,6 +5,8 @@
 #include <cstring>
 #include <cctype>
 #include <windows.h>
+#include <sstream>
+#include <vector>
 
 //Se define que se va a utilizar el namespace "std"
 using namespace std;
@@ -36,7 +38,9 @@ void logging(){
 	file<<fechaActual<<"Sistema Cargado"<< endl;
 }
 
-//ESTRUCTURAS:
+/*****************************************
+***************ESTRUCTURAS:***************
+*****************************************/
 
 //Se declara la estructura para la secondaria de doctores
 struct nodoDoctores{
@@ -62,12 +66,33 @@ struct nodoUsers{
     bool activo;
     nodoUsers *sig;
 };
+//Se declara la estructura para los pacientes
+struct nodoPacientes{
+    string nombre;
+    int cedula;
+    int celular; 
+    string sintomas;
+    string fechaIngreso;
+    int provincia;
+    nodoPacientes *sig;
+};
+//Estructura principal de pacientes
+struct nodoProvincia{
+    int provincia;
+    nodoProvincia *sig;
+    nodoPacientes *paciente;
+};
 //Se crea un typo de estructura tipo nodo para poder usarla en el código
 typedef struct nodoEspecia *lista;
 typedef struct nodoUsers *listaUsers;
 typedef struct nodoDoctores *listaDocs;
+typedef struct nodoProvincia *listaProvincias;
+typedef struct nodoPacientes *listaPacientes;
 
-//METODOS PARA EL LOGIN
+
+/****************************************************
+***************METODOS PARA EL LOGIN*****************
+*****************************************************/
 
 //Metodo que retorna un booleano que verifica si un usuario se puede loguear o no
 bool login(listaUsers &cab, string user, string password){
@@ -374,7 +399,342 @@ void actualizarEstado(listaUsers &cab, string user, bool estado){
 
     }
 }
-//METODO PARA LA LISTA DE ESPECIALIDADES
+
+/************************************************************
+***************METODOS PARA LA LISTA DE PACIENTES************
+************************************************************/
+
+nodoProvincia *crearNodoPacientes(listaProvincias &cab, int provincia){
+    char* fechaActual= get_time();
+    nodoProvincia *nuevo_nodo= new (struct nodoProvincia);
+    nuevo_nodo->provincia=provincia;
+    nuevo_nodo->sig=NULL;
+    nuevo_nodo->paciente=NULL;
+    return nuevo_nodo;
+    file<<fechaActual<<"NODO PROVINCIA CREADO" << endl;
+}
+nodoPacientes *crearNodoPacientes(string nombre, int cedula, int celular, string sintomas, string fechaIngreso,int provincia){
+    char* fechaActual= get_time();
+    nodoPacientes *nuevo_nodo= new (struct nodoPacientes);
+    nuevo_nodo->nombre=nombre;
+    nuevo_nodo->cedula=cedula;
+    nuevo_nodo->celular=celular;
+    nuevo_nodo->sintomas=sintomas;
+    nuevo_nodo->fechaIngreso=fechaIngreso;
+    nuevo_nodo->provincia=provincia;
+    nuevo_nodo->sig=NULL;
+    return nuevo_nodo;
+    file<<fechaActual<<"NODO PACIENTE CREADO" << endl;
+}
+void crearListaPrincipalPacientes(listaProvincias &cab, int provincia){
+    nodoProvincia *nuevo_nodo= crearNodoPacientes(cab, provincia);
+    if(cab==NULL){
+        cab=nuevo_nodo;
+    }
+    else{
+        nuevo_nodo->sig=cab;
+        cab=nuevo_nodo;
+    }
+}
+void agregarPaciente(listaProvincias &cab, string nombre, int cedula, int celular, string sintomas, string fechaIngreso, int provincia){
+    listaProvincias aux;
+    nodoPacientes *aux1;
+    nodoPacientes *nuevo= crearNodoPacientes(nombre,cedula,celular,sintomas,fechaIngreso,provincia);
+    char* fechaActual= get_time();
+    if(cab==NULL){
+        cout<<"LISTA VACIA"<< endl;
+        file<<fechaActual<<"LISTA &: "<< cab  << " VACIA" << endl;
+    } 
+    else{
+        aux=cab;
+        while(aux!=NULL){
+            if(aux->provincia==provincia){
+                if(aux->paciente==NULL){
+                    aux->paciente=nuevo;
+                }
+                else{
+                    aux1=aux->paciente;
+                    while(aux1->sig!=NULL){
+                        aux1=aux1->sig;
+                    }
+                    aux1->sig=nuevo;
+                }
+                aux1=NULL;
+            }
+            aux=aux->sig;
+        }
+    }
+    file<<fechaActual<<"ADDED PACIENTE: "<< cedula << endl;
+}
+
+void crearNodosProvinciasDefault(listaProvincias &cab){
+    char* fechaActual= get_time();
+    file<<fechaActual<<"CREATED PROVINCIAS"<<endl;
+    crearListaPrincipalPacientes(cab,1);
+    crearListaPrincipalPacientes(cab,2);
+    crearListaPrincipalPacientes(cab,3);
+    crearListaPrincipalPacientes(cab,4);
+    crearListaPrincipalPacientes(cab,5);
+    crearListaPrincipalPacientes(cab,6);
+    crearListaPrincipalPacientes(cab,7);
+}
+
+void crearPacientesEjemplo(listaProvincias &cab){
+    char* fechaActual= get_time();
+    file<<fechaActual<<"CREATED PACIENTES EJEMPLO"<<endl;
+    agregarPaciente(cab,"JOSEPH GRANADOS",118320862,605050505, "FIEBRE", "2020/09/15", 1);
+    agregarPaciente(cab,"JOSEPH GRANADOS",1183208622,605050505, "FIEBRE", "2020/09/15", 1);
+    agregarPaciente(cab,"ASSASAS GRANADOS",2183252,6085505, "FIEBRE", "2021/09/15", 2);
+    agregarPaciente(cab,"FDFD GRANADOS",318320862,605050505, "FIEBRE", "2020/09/25", 3);
+    agregarPaciente(cab,"DFFDFD GRANADOS",418320862,601150505, "FIEBRE", "2027/09/15", 4);
+    agregarPaciente(cab,"FDFD GRANADOS",52323232,1111111, "FIEBRE", "2025/09/15", 5);
+}
+
+void mostrar(listaProvincias cab){
+    system("cls"); 
+    listaProvincias auxRecorrer;
+    nodoPacientes *aux2;
+    char* fechaActual= get_time();
+    if(cab==NULL){
+        cout<<"LISTA NULL" << endl;
+    }
+    else{
+        auxRecorrer=cab;
+        while(auxRecorrer!=NULL){
+            cout<< "+------------------------+"<<endl;
+            cout<<"Provincia: "<< auxRecorrer->provincia << "\n ";
+            cout<< "+------------------------+"<<endl;
+                if(auxRecorrer->paciente==NULL){
+                    cout<< "************************"<<endl;
+                    cout<<"NINGUN PACIENTE EN ESTA PROVINCIA"<<endl;
+                    file<<fechaActual<<" NO HAY PACIENTES EN PROVINCIA: "<< auxRecorrer->provincia<< endl;
+                }
+                else{
+                    aux2=auxRecorrer->paciente;
+                    while(aux2!=NULL){
+                        cout<< "************************"<<endl;
+                        cout<<"NOMBRE: "<< aux2->nombre << endl;
+                        cout<<"CEDULA: "<< aux2->cedula << endl;
+                        cout<<"CELULAR: " << aux2->celular <<endl;
+                        cout<<"SINTOMAS: " << aux2->sintomas <<endl;
+                        cout<<"Fecha De Ingreso: " << aux2->fechaIngreso <<endl;
+                        cout<< "************************"<<endl;
+                        aux2=aux2->sig;
+                    }
+                }
+
+            auxRecorrer=auxRecorrer->sig;
+        }
+    }
+    file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
+}
+
+vector <int> guessProvincia(int cedula)
+{
+    char* fechaActual= get_time();
+    vector <int> resultArray;
+    while (true)
+    {
+    resultArray.insert(resultArray.begin(), cedula%10);
+    cedula /= 10;
+    if(cedula == 0)
+        return resultArray;
+    }
+    file<<fechaActual<<"FOUND THE PROVINCIA" <<resultArray[0] << endl;
+}
+    
+int findProvincia(listaProvincias &cab, int cedulaa){
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provincia;
+    while(aux!=NULL){
+        aux2=aux->paciente;
+        while(aux2!=NULL){
+            if(aux2->cedula==cedulaa){
+                provincia=aux2->provincia;
+            }
+            aux2=aux2->sig;
+        }
+        aux=aux->sig;
+    }
+    char* fechaActual= get_time();
+    file<<fechaActual<<"FOUND THE PROVINCIA OF: "<< cedulaa << " - "<< provincia <<endl;
+    return provincia;
+}
+
+void borrarPaciente(listaProvincias &cab, int cedulaa){
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    nodoPacientes *aux3;
+    char* fechaActual= get_time();
+    int provinciaa= findProvincia(aux,cedulaa);
+    while(aux!=NULL){
+        if(aux->provincia==provinciaa){
+            aux2=aux->paciente;
+            while(aux2!=NULL){
+                if(aux2->cedula==cedulaa){
+                    aux3->sig=aux2->sig;
+                    aux2->sig=NULL;
+                    file<<fechaActual<<"DELETED PACIENTE :"<< aux2->cedula <<endl;
+                    cout<<"PACIENTE :" <<aux2->cedula <<" BORRADO" <<endl;
+                    delete(aux2);
+                }
+                aux3=aux2;
+                aux2=aux2->sig;
+            }
+        }
+        aux=aux->sig;
+    }
+}
+
+void actualizarNombrePaciente(listaProvincias &cab, int cedula, string nombreNuevo){
+    char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provinciaa= findProvincia(aux,cedula);
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        //Se iguala la lista a la lista que recibe como parámetro
+        aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL 
+        while(aux!=NULL){
+            if(aux->provincia==provinciaa){
+                aux2=aux->paciente;
+                while(aux2!=NULL && aux2->cedula!=cedula){
+                    aux2=aux2->sig;
+                }
+            }
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"NOMBRE UPDATED FROM: "<< aux2->nombre << " TO " << nombreNuevo <<endl;
+        //Se actualiza el nombre
+        aux2->nombre=nombreNuevo;
+    }
+}
+
+void actualizarCelPaciente(listaProvincias &cab, int cedula, int celNuevo){
+    char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provinciaa= findProvincia(aux,cedula);
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        //Se iguala la lista a la lista que recibe como parámetro
+        aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL 
+        while(aux!=NULL){
+            if(aux->provincia==provinciaa){
+                aux2=aux->paciente;
+                while(aux2!=NULL && aux2->cedula!=cedula){
+                    aux2=aux2->sig;
+                }
+            }
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"CELULAR UPDATED FROM: "<< aux2->celular << " TO " << celNuevo <<endl;
+        //Se actualiza el cel
+        aux2->celular=celNuevo;
+    }
+}
+
+void actualizarSintomasPaciente(listaProvincias &cab, int cedula, string sintomasNuevo){
+    char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provinciaa= findProvincia(aux,cedula);
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        //Se iguala la lista a la lista que recibe como parámetro
+        aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL 
+        while(aux!=NULL){
+            if(aux->provincia==provinciaa){
+                aux2=aux->paciente;
+                while(aux2!=NULL && aux2->cedula!=cedula){
+                    aux2=aux2->sig;
+                }
+            }
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"SINTOMAS UPDATED FROM: "<< aux2->sintomas << " TO " << sintomasNuevo <<endl;
+        //Se actualiza los sintomas
+        aux2->sintomas=sintomasNuevo;
+    }
+}
+
+void actualizarFechaPaciente(listaProvincias &cab, int cedula, string fechaNuevo){
+    char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provinciaa= findProvincia(aux,cedula);
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        //Se iguala la lista a la lista que recibe como parámetro
+        aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL 
+        while(aux!=NULL){
+            if(aux->provincia==provinciaa){
+                aux2=aux->paciente;
+                while(aux2!=NULL && aux2->cedula!=cedula){
+                    aux2=aux2->sig;
+                }
+            }
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"Fecha UPDATED FROM: "<< aux2->fechaIngreso << " TO " << fechaNuevo <<endl;
+        //Se actualiza el Fecha
+        aux2->fechaIngreso=fechaNuevo;
+    }
+}
+
+void actualizarProvinciaPaciente(listaProvincias &cab, int cedula, int provinciaNuevo){
+    char* fechaActual= get_time(); //logging
+    //Lista local para recorrer la lista
+    listaProvincias aux=cab;
+    nodoPacientes *aux2;
+    int provinciaa= findProvincia(aux,cedula);
+    if(cab== NULL){
+        cout<<"ERROR, LISTA VACIA" << endl;
+        file<<fechaActual<<"ERROR, LISTA VACIA WHILE TRYING TO UPDATE A NAME: " << &cab<<endl;
+    }
+    else{
+        //Se iguala la lista a la lista que recibe como parámetro
+        aux=cab;
+        //Recorre la lista siempre y cuando sea diferente a NULL 
+        while(aux!=NULL){
+            if(aux->provincia==provinciaa){
+                aux2=aux->paciente;
+                while(aux2!=NULL && aux2->cedula!=cedula){
+                    aux2=aux2->sig;
+                }
+            }
+         aux=aux->sig;
+        }
+        file<<fechaActual<<"Provincia UPDATED FROM: "<< aux2->provincia << " TO " << provinciaNuevo <<endl;
+        //Se actualiza la provincia
+        aux2->provincia=provinciaNuevo;
+    }
+}
+
+/*******************************************************************
+***************METODO PARA LA LISTA DE ESPECIALIDADES***************
+*******************************************************************/
 
 //Este método crea un Nodo de Especialidades el cual recibe de parametro una cabeza de tipo lista 
 nodoEspecia *crearNodoDocs(lista &cab, char especialidad){
@@ -482,7 +842,7 @@ void mostrar(lista cab){
     else{
         auxRecorrer=cab;
         while(auxRecorrer!=NULL){
-
+            
             cout<<"ESPECIALIDAD: "<< auxRecorrer->especialidad << "\n ";
                 if(auxRecorrer->doc==NULL){
                     cout<<"NINGUN DOCTOR EN ESTA ESPECIALIDAD"<<endl;
@@ -537,8 +897,6 @@ int totalD(lista cab){
     }
     return total;
 }
-
-
 
 //Método que borra una especialidad, recibe una lista y el identificador único a eliminar
 void borrarEspecialidad(lista &cab, char identificador){
@@ -669,7 +1027,7 @@ void borrarDoctor(lista &cab, int identificador){
         if(aux->especialidad==especialidad){
             aux2=aux->doc;
             while(aux2!=NULL){
-                if(aux2->codigo=identificador){
+                if(aux2->codigo==identificador){
                     aux3->sig=aux2->sig;
                     aux2->sig=NULL;
                     file<<fechaActual<<"DELETED DOCTOR :"<< aux2->codigo <<endl;
@@ -687,7 +1045,6 @@ void borrarDoctor(lista &cab, int identificador){
 void borrarTodosLosDoctores(){
 
 }
-
 
 
 //METODOS USADOS PARA PRESENTAR MENUS AL USER/ADMIN
@@ -752,8 +1109,8 @@ void menuDoctores(lista listaEspecialidades){
 
     }while(opc!=4);
 }
-void menuEspecialidades (){
-    lista Lista=NULL;
+void menuEspecialidades (lista &Listaa){
+    lista Lista=Listaa;
     //Variables usada en el menu
     int opc,opc2,opc3,i=0,total;
     char especialidades,toDelete,fromUpdate,toUpdate;
@@ -761,8 +1118,6 @@ void menuEspecialidades (){
     bool check;
     char* fechaActual= get_time();
     file<<fechaActual<<"ADMIN SELECTED MENUESPECIALIDADES"<<endl;
-    crearNodosListaPrincipalDefaultEspecialidades(Lista);
-    crearNodosListaSecundariaDefault(Lista);
     do{       
         system("cls"); 
         cout<<"Bienvenido Admin al menu de especialidades medicas! Elija alguna opcion: "<< endl;
@@ -770,89 +1125,89 @@ void menuEspecialidades (){
         cin>>opc;
         switch(opc){
             case 1:
-            system("cls");
-            file<<fechaActual<<"ADMIN SELECTED AGREGAR ESPECIALIDAD "<< endl;
-            cout<<"HEMOS AGREGADO LAS ESPECIALIDADES POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNA MAS? \n 1. Si 2. NO 3. VER CODIGO DE ESPECIALIDADES \n :";
-            cin>>opc2;
-                switch(opc2){
-                    case 1:
-                    system("cls");
-                    cout<<"INGRESE EL NOMBRE DE LA ESPECIALIDAD "<< endl;
-                    cin>>nombreEspecialidad;
-                    cout<<"INGRESE UNA LETRA IDENTIFICADORA PARA LA ESPECIALIDAD NUEVA "<< endl;
-                    cin>>especialidades;
-                    crearListaPrincipalDocs(Lista,especialidades);   
-                    file<<fechaActual<<" ADDED ESPECIALIDAD: "<< especialidades<<"="<<nombreEspecialidad<< endl;
-                    system("pause");                    
-                    break;
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED AGREGAR ESPECIALIDAD "<< endl;
+                cout<<"HEMOS AGREGADO LAS ESPECIALIDADES POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNA MAS? \n 1. Si 2. NO 3. VER CODIGO DE ESPECIALIDADES \n :";
+                cin>>opc2;
+                    switch(opc2){
+                        case 1:
+                        system("cls");
+                        cout<<"INGRESE EL NOMBRE DE LA ESPECIALIDAD "<< endl;
+                        cin>>nombreEspecialidad;
+                        cout<<"INGRESE UNA LETRA IDENTIFICADORA PARA LA ESPECIALIDAD NUEVA "<< endl;
+                        cin>>especialidades;
+                        crearListaPrincipalDocs(Lista,especialidades);   
+                        file<<fechaActual<<" ADDED ESPECIALIDAD: "<< especialidades<<"="<<nombreEspecialidad<< endl;
+                        system("pause");                    
+                        break;
 
-                    case 2:
-                    system("cls");
-                    cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
-                    system("pause");
-                    break;
+                        case 2:
+                        system("cls");
+                        cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
+                        system("pause");
+                        break;
 
-                    case 3:
-                    system("cls");
-                    //TO_DO
-                    cout<<"By default: \n C=Cardiologia \n D=Dermatologia \n O=Oftalmologia \n N=Neurologia \n P=Pediatria \n U=Urologia \n R=Reumatologia \nUser Added: \n "<< especialidades<<"="<<nombreEspecialidad<<endl;
-                    file<<fechaActual<<" PRINTED DESCRIPTIONS "<< endl;
-                    system("pause");
-                    break;
-                }   
+                        case 3:
+                        system("cls");
+                        //TO_DO
+                        cout<<"By default: \n C=Cardiologia \n D=Dermatologia \n O=Oftalmologia \n N=Neurologia \n P=Pediatria \n U=Urologia \n R=Reumatologia \nUser Added: \n "<< especialidades<<"="<<nombreEspecialidad<<endl;
+                        file<<fechaActual<<" PRINTED DESCRIPTIONS "<< endl;
+                        system("pause");
+                        break;
+                    }   
             break;
 
             case 2:
-            system("cls");
-            file<<fechaActual<<"ADMIN SELECTED BORRAR ALGUNA ESPECIALIDAD "<< endl;
-            cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
-            cout<<"Ingrese el identificador de la especialidad que quiere borrar"<< endl;
-            cin>>toDelete;
-            check=canIDelete(Lista,toDelete);
-            if(check){
-                file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and confirmed."<< endl;
-                borrarEspecialidad(Lista,toDelete);
-                system("pause");
-            }
-            else{
-                file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and rejected."<< endl;
-                cout<<"La especialidad no puede ser borrada porque hay doctores en la misma"<<endl;
-                system("pause");
-            }
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED BORRAR ALGUNA ESPECIALIDAD "<< endl;
+                cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
+                cout<<"Ingrese el identificador de la especialidad que quiere borrar"<< endl;
+                cin>>toDelete;
+                check=canIDelete(Lista,toDelete);
+                if(check){
+                    file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and confirmed."<< endl;
+                    borrarEspecialidad(Lista,toDelete);
+                    system("pause");
+                }
+                else{
+                    file<<fechaActual<<" Checked if "<< toDelete << " can be deleted and rejected."<< endl;
+                    cout<<"La especialidad no puede ser borrada porque hay doctores en la misma"<<endl;
+                    system("pause");
+                }
             break;
 
             case 3:
-            system("cls");
-            file<<fechaActual<<"ADMIN SELECTED ACTUALIZAR ESPECIALIDAD "<< endl;
-            cout<<"!!!!!"<< endl;
-            cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
-            cout<<"!!!!!"<< endl;
-            cout<<" "<< endl;
-            cout<<"Ingrese el identificador de la especialidad que quiere modificar"<< endl;
-            cin>>fromUpdate;
-            cout<<"Ingrese el nuevo"<<endl;
-            cin>>toUpdate;
-            actualizarEspecialidad(Lista,fromUpdate,toUpdate);
-            system("pause");
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED ACTUALIZAR ESPECIALIDAD "<< endl;
+                cout<<"!!!!!"<< endl;
+                cout<<"ANTES DE CONTINUAR, ASEGURESE QUE ESTA MODIFICANDO LA LISTA CORRECTAMENTE YA QUE PODRIA AFECTAR EL FUNCIONAMIENTO DEL SISTEMA"<< endl;
+                cout<<"!!!!!"<< endl;
+                cout<<" "<< endl;
+                cout<<"Ingrese el identificador de la especialidad que quiere modificar"<< endl;
+                cin>>fromUpdate;
+                cout<<"Ingrese el nuevo"<<endl;
+                cin>>toUpdate;
+                actualizarEspecialidad(Lista,fromUpdate,toUpdate);
+                system("pause");
             break;
 
             case 4:
-            system("cls");
-            file<<fechaActual<<"ADMIN SELECTED MOSTRAR LISTA "<< endl;
-            mostrar(Lista);
-            system("pause");
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED MOSTRAR LISTA "<< endl;
+                mostrar(Lista);
+                system("pause");
             break;      
 
             case 5:
-            system("cls");
-            file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
-            menuDoctores(Lista);
-            system("pause");
+                system("cls");
+                file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
+                menuDoctores(Lista);
+                system("pause");
             break;
         }
     }while(opc!=6);
 }
-void menuUsers(listaUsers listaU){
+void menuUsers(listaUsers &listaU){
     listaUsers Lista=listaU;
     //Variables usada en el menu
     char* fechaActual= get_time();
@@ -869,61 +1224,61 @@ void menuUsers(listaUsers listaU){
         cin>>opc;
         switch(opc){
             case 1:
-            file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
-            system("cls");
-            cout<<"HEMOS AGREGADO LOS USUARIOS POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNO MAS? \n 1. Si 2. NO \n";
-            cin>>opc2;
-            switch(opc2){
-                    case 1:
-                            cout<<"Ingrese el nombre: "<< endl;
-                            cin>> nombre;
-                            cout<<"Ingrese el user: " << endl;
-                            cin>> user;
-                            cout<<"Ingrese el codigo identificador: " << endl;
-                            cin>> codigo;
-                            cout<< "Ingrese el tipo de user ('E' = estandar o 'A' =administrador)"<<endl;
-                            cin>> tipo;
-                            cout<<"Ingrese el password" << endl;
-                            cin>>contra;
-                            passwordValidation=validationPassword(contra);
-                            if(passwordValidation){
-                                cout<<"LA CONTRASENIA CUMPLE REQUISITOS"<< endl;
-                                system("pause");
-                            }
-                            else{
-                                cout<<"LA CONTRASENIA NO CUMPLE REQUISITOS, VOLVIENDO AL MENU PRINCIPAL"<< endl;
+                file<<fechaActual<<"ADMIN SELECTED MENU DOCTORES "<< endl;
+                system("cls");
+                cout<<"HEMOS AGREGADO LOS USUARIOS POR DEFECTO DEL HOSPITAL, DESEA AGREGAR ALGUNO MAS? \n 1. Si 2. NO \n";
+                cin>>opc2;
+                switch(opc2){
+                        case 1:
+                                cout<<"Ingrese el nombre: "<< endl;
+                                cin>> nombre;
+                                cout<<"Ingrese el user: " << endl;
+                                cin>> user;
+                                cout<<"Ingrese el codigo identificador: " << endl;
+                                cin>> codigo;
+                                cout<< "Ingrese el tipo de user ('E' = estandar o 'A' =administrador)"<<endl;
+                                cin>> tipo;
+                                cout<<"Ingrese el password" << endl;
+                                cin>>contra;
+                                passwordValidation=validationPassword(contra);
+                                if(passwordValidation){
+                                    cout<<"LA CONTRASENIA CUMPLE REQUISITOS"<< endl;
+                                    system("pause");
+                                }
+                                else{
+                                    cout<<"LA CONTRASENIA NO CUMPLE REQUISITOS, VOLVIENDO AL MENU PRINCIPAL"<< endl;
+                                    system("pause");
+                                    break;
+                                }
+                                cout<<"Ingrese el estado: 1. Activo 2. Inactivo" << endl;
+                                cin>>activo;
+
+                                crearListaUserLogging(Lista,  nombre,  codigo,  tipo,  user,  contra,activo);
+                                cout<<"DESEA PROBAR SI LAS CREDENCIALES DEL USUARIO NUEVO SIRVEN? 1. Si 2. No \n" << endl;
+                                cin>> opc3;
+                                if(opc3==1){
+                                    cout<< "USER: ";
+                                    cin>>userT;
+                                    cout<<"PASSWORD: ";
+                                    cin>>passwordT;
+                                    confirmationLogin=login(Lista,userT, passwordT);
+                                        if(confirmationLogin){
+                                            cout<<"El user funciona para loguearse"<<endl;
+                                            file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user<<endl;
+                                            system("pause");
+                                        }
+                                        else{
+                                            cout<<"LAS CREDENCIALES FALLAN, REVISE EL USUARIO"<< endl;
+                                            file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user << "AND FAILED"<<endl;
+                                            system("pause");
+                                        }
+                                }
+                            break;
+                        case 2:
+                                system("cls");
+                                cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
                                 system("pause");
                                 break;
-                            }
-                            cout<<"Ingrese el estado: 1. Activo 2. Inactivo" << endl;
-                            cin>>activo;
-
-                            crearListaUserLogging(Lista,  nombre,  codigo,  tipo,  user,  contra,activo);
-                            cout<<"DESEA PROBAR SI LAS CREDENCIALES DEL USUARIO NUEVO SIRVEN? 1. Si 2. No \n" << endl;
-                            cin>> opc3;
-                            if(opc3==1){
-                                cout<< "USER: ";
-                                cin>>userT;
-                                cout<<"PASSWORD: ";
-                                cin>>passwordT;
-                                confirmationLogin=login(Lista,userT, passwordT);
-                                    if(confirmationLogin){
-                                        cout<<"El user funciona para loguearse"<<endl;
-                                        file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user<<endl;
-                                        system("pause");
-                                    }
-                                    else{
-                                        cout<<"LAS CREDENCIALES FALLAN, REVISE EL USUARIO"<< endl;
-                                        file<<fechaActual<<"TESTED LOGIN FOR NEW USER: "<< user << "AND FAILED"<<endl;
-                                        system("pause");
-                                    }
-                            }
-                        break;
-                    case 2:
-                            system("cls");
-                            cout<<"VOLVIENDO AL MENU DE ADMIN PRINCIPAL"<< endl;
-                            system("pause");
-                            break;
                     }
             break;
             case 2:
@@ -971,17 +1326,111 @@ void menuUsers(listaUsers listaU){
 
     }while(opc!=5);
 }
-void menuPacientes(){
+void menuPacientes(listaProvincias &listaPA){
+    system("cls"); 
+    char* fechaActual= get_time();
+    listaProvincias listaP=listaPA;
+    int opc,cedula,celular,to_delete,to_update,opc2,nuevo_cel,nuevaProvincia;
+    vector <int> provincia;
+    string nombre,sintomas,fechaIngreso,nuevoNombre,nuevoSintomas,nuevoFecha;
+    do{
+    system("cls"); 
+    cout<<"Bienvenido al menu de pacientes y citas! Favor elegir una opción \n 1. Agregar un paciente \n 2. Eliminar un paciente \n 3. Actualizar un paciente \n 4. Mostrar Pacientes \n 5. Administrar Citas \n 6. Salir \n:" ;
+    cin>>opc;
+    switch(opc){
+        case 1:
+        system("cls"); 
+        cout<<"Ha seleccionado agregar un nuevo paciente, favor ingrese los datos del mismo. \n Nombre:" <<endl;
+        cin>>nombre;
+        cout<<"Cedula : \n";
+        cin>>cedula;
+        cout<<"Celular: \n";
+        cin>>celular;
+        cout<<"Sintomas: \n";
+        cin>>sintomas;
+        cout<<"Fecha de Ingreso: \n";
+        cin>>fechaIngreso;
+        provincia= guessProvincia(cedula);
+        agregarPaciente(listaP,nombre,cedula,celular, sintomas, fechaIngreso, provincia[0]);
+        cout<<"Agregado paciente: " << nombre<< endl;
+        system("pause");
+        break;
 
-}
-void menuCitas(){
+        case 2:
+        system("cls"); 
+        cout<<"Ha seleccionado eliminar un paciente, ingrese el numero de cedula del mismo \n";
+        cin>>to_delete;
+        borrarPaciente(listaP,to_delete);
+        system("pause");
+        break;
 
+        case 3:
+        system("cls"); 
+        cout<<"Ha seleccionado actualizar los datos de un paciente, ingrese el numero de cedula del mismo \n";
+        cin>>to_update;
+        cout<<" Que desea modificar? \n 1. Nombre \n 2. Celular \n 3. Sintomas \n 4. Fecha Ingreso \n 5. Provincia \n :";
+        cin>>opc2;
+        switch(opc2){
+            case 1:
+            system("cls"); 
+            cout<<"Nuevo nombre: "<< endl;
+            cin>>nuevoNombre;
+            actualizarNombrePaciente(listaP,to_update,nuevoNombre);
+            break;
+
+            case 2:
+            system("cls"); 
+            cout<<"Nuevo cel: "<< endl;
+            cin>>nuevo_cel;
+            actualizarCelPaciente(listaP,to_update,nuevo_cel);
+            system("pause");
+            break;
+
+            case 3:
+            system("cls"); 
+            cout<<"Nuevos sintomas: "<< endl;
+            cin>>nuevoSintomas;
+            actualizarSintomasPaciente(listaP,to_update,nuevoSintomas);
+            break;
+
+            case 4:
+            system("cls"); 
+            cout<<"Nueva fecha: "<< endl;
+            cin>>nuevoFecha;
+            actualizarFechaPaciente(listaP,to_update,nuevoFecha);
+            break;
+
+            case 5:
+            system("cls"); 
+            cout<<"Nueva provincia: "<< endl;
+            cin>>nuevaProvincia;
+            actualizarProvinciaPaciente(listaP,to_update,nuevaProvincia);
+            break;
+
+        }
+
+        system("pause");
+        break;
+
+        case 4:
+        mostrar(listaP);
+        system("pause");
+        break;
+    }
+    }while(opc!=6);
 }
+
 void menuPrincipal(){
     logging();
     listaUsers listaU=NULL;
+    listaProvincias listaP=NULL;
+    lista Lista=NULL;
     char* fechaActual= get_time();
     crearAdminAndUserDefault(listaU);
+    crearNodosProvinciasDefault(listaP);
+    crearPacientesEjemplo(listaP);
+    crearNodosListaPrincipalDefaultEspecialidades(Lista);
+    crearNodosListaSecundariaDefault(Lista);
     string user, password;
     bool confirmationLogin,confirmationAdmin;
     system("cls"); 
@@ -1015,10 +1464,10 @@ void menuPrincipal(){
                 menuUsers(listaU);
                 break;
                 case 2:
-                menuEspecialidades();
+                menuEspecialidades(Lista);
                 break;
                 case 3:
-                menuPacientes();
+                menuPacientes(listaP);
                 break;
             }
         }
@@ -1027,16 +1476,16 @@ void menuPrincipal(){
             system("cls"); 
             int opc;
             cout<<"Bienvenido Usuario!, favor elegir alguna opcion"<< endl;
-            cout<<" 1. Administrar Pacientes  2. Administrar Citas  3. Salir" << endl;
+            cout<<" 1. Administrar Pacientes 2. Salir" << endl;
             cout<<"POR SEGURIDAD, UNA VEZ SELECCIONADA UNA INTERFAZ DE ADMINISTRACION TENDRA QUE LOGUEARSE OTRA VEZ PARA CAMBIAR LA MISMA"<< endl;
             cout<<": ";
             cin>>opc;
             switch(opc){
                 case 1:
-                menuPacientes();
+                menuPacientes(listaP);
                 break;
                 case 2:
-                menuCitas();
+                cout<<"SALIENDO";
                 break;
             }
         }
