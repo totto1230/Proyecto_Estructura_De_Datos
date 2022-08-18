@@ -71,10 +71,19 @@ struct nodoPacientes{
     string nombre;
     int cedula;
     int celular; 
-    string sintomas;
+    int sintomas;
     string fechaIngreso;
     int provincia;
     nodoPacientes *sig;
+};
+//Se declara la estructura para las citas
+struct nodoCitas{
+    int cedula;
+    int codigoDoc;
+    int sintomas;
+    string fechaCita;
+    string horaCita;
+    nodoCitas *sig;
 };
 //Estructura principal de pacientes
 struct nodoProvincia{
@@ -88,6 +97,7 @@ typedef struct nodoUsers *listaUsers;
 typedef struct nodoDoctores *listaDocs;
 typedef struct nodoProvincia *listaProvincias;
 typedef struct nodoPacientes *listaPacientes;
+typedef struct nodoCitas *listaCitas;
 
 
 /****************************************************
@@ -172,7 +182,9 @@ bool checkIfAdmin(listaUsers &cab, string user){
     return admin;
 }
 
-//METODOS DE LA LISTA DE USUARIOS LOGIN
+/*******************************************************************
+***************METODOS DE LA LISTA DE USUARIOS LOGIN****************
+*******************************************************************/
 
 //Metodo para crear el nodo del user que se utiliza para loguearse al sistema
 nodoUsers *crearNodoUser(listaUsers &cab, string nombre, int codigo, char tipo, string user, string contra, bool activo){
@@ -212,9 +224,9 @@ void borrarUserLogin(listaUsers &cab, string userToDelete){
     
     //Se valida la lista que no sea nula
     if(cab != NULL){    
-    aux2=NULL;
-    //Se iguala el aux a borrar con la lista que se recibe como parametro
-    aux=cab;
+        aux2=NULL;
+        //Se iguala el aux a borrar con la lista que se recibe como parametro
+        aux=cab;
     }
 
     //Se recorre la lista siempre y cuando no sea NULL ni el identificador único a eliminar
@@ -400,6 +412,162 @@ void actualizarEstado(listaUsers &cab, string user, bool estado){
     }
 }
 
+/*******************************************************************
+***************METODOS DE LA LISTA DE CITAS*************************
+*******************************************************************/
+nodoCitas *crearNodoCitas(listaCitas &cab, int cedula, int codigo, int sintomas, string fechaCita, string horaCita){
+    
+    char* fechaActual= get_time();
+    nodoCitas *nuevo_nodo= new (struct nodoCitas);
+    nuevo_nodo->cedula=cedula;
+    nuevo_nodo->codigoDoc=codigo;
+    nuevo_nodo->sintomas=sintomas;
+    nuevo_nodo->fechaCita=fechaCita;
+    nuevo_nodo->horaCita=horaCita;
+    nuevo_nodo->sig=NULL;
+    return nuevo_nodo;
+    file<<fechaActual<<"NODO CITAS CREADO" << endl;
+}
+//Se crea una lista simple
+void crearListaCitas(listaCitas &cab, int cedula, int codigo, int sintomas, string fechaCita, string horaCita){
+    nodoCitas *nuevo_nodo= crearNodoCitas(cab,  cedula,  codigo,  sintomas,  fechaCita,  horaCita);
+    char* fechaActual= get_time();
+    if(cab==NULL){
+        cab=nuevo_nodo;
+    }
+    else{
+        nuevo_nodo->sig=cab;
+        cab=nuevo_nodo;
+        file<<fechaActual<<"CREATED CITA: "<< cedula << " "<< " " << codigo  << fechaCita << " " <<horaCita <<endl;
+    }
+}
+//Método para borrar un usuario de la lista para login
+void borrarCita(listaCitas &cab, int cedula, string fechaCita, string horaCita){
+
+    //Se crean dos nodos para aux para poder unir la lista resultante y encontrar el nodo a eliminar
+    nodoCitas *aux; //Nodo a eliminar
+    nodoCitas *aux2; //Nodo que sirva para unir la lista
+    char* fechaActual= get_time(); //logging
+    
+    //Se valida la lista que no sea nula
+    if(cab != NULL){    
+        aux2=NULL;
+        //Se iguala el aux a borrar con la lista que se recibe como parametro
+        aux=cab;
+    }
+
+    //Se recorre la lista siempre y cuando no sea NULL ni el identificador único a eliminar
+    while((aux!=NULL) && (aux->cedula!=cedula) && (aux->fechaCita!=fechaCita) && (aux->horaCita!=horaCita)){
+            //Se coloca el aux2 en la posición actual del aux
+            aux2=aux;
+            //Y se mueve aux, indirectamente aux2 es el anterior de aux
+            aux=aux->sig;
+    }
+    //logging
+    file<<fechaActual<<"DELETED CITA: "<< cedula << " "<< " "   << fechaCita << " " <<horaCita <<endl;
+    cout<<"DELETED CITA: "<< cedula << " "<< " "   << fechaCita << " " <<horaCita <<endl;
+    system("pause");
+    if( aux2==NULL){
+        cab=cab->sig;
+        //Se borra el nodo aux
+        delete(aux);
+    }
+    else{
+        //Se une la lista antes de borrarla para evitar que quede aux2 apuntando a un NULL
+        aux2->sig=aux->sig;
+        //Se borra el nodo aux
+        delete (aux);
+    }
+ }    
+
+bool checkCitas(listaCitas &cab, int cedula, int codigo, string fechaCita, string horaCita){
+    bool validation=true;
+    char* fechaActual= get_time(); //logging
+    listaCitas aux=cab;
+    while(aux!=NULL){
+        if(aux->cedula==cedula){
+            if(aux->codigoDoc==codigo){
+                if(aux->fechaCita==fechaCita){
+                    if(aux->horaCita==horaCita){
+                        validation=false;
+                    }
+                }
+            }
+        }
+        aux=aux->sig;
+    }
+    file<<fechaActual<<" VALIDATED IF CITA : "<< cedula << " "<< " " << codigo  << fechaCita << " " <<horaCita << " COULD BE ADDED" <<endl;
+    return validation;
+}
+void mostrarCitas(listaCitas cab){
+    //Aux local para recorrer la lista
+    listaCitas auxRecorrer;
+    //Se verifica si la lista está vacía
+    if(cab==NULL){
+        cout<<"LISTA VACÍA" << endl;
+    }
+    else{
+        //Se iguala la lista local a la que recibe como parámetro
+        auxRecorrer=cab;
+        //Recorre la lista siempre y cuando no sea NULL y me imprime el contenido
+        while(auxRecorrer!=NULL){
+            cout<<"CEDULA: " <<auxRecorrer->cedula << endl;
+            cout<<"CODIGO DE DOCTOR: " <<auxRecorrer->codigoDoc<< endl;
+            cout<<"SINTOMAS : " << auxRecorrer->sintomas<< endl;
+            cout<<"1. Fiebre 2. Dolor De Cabeza 3. Dolor de muelas 4. Covid 5. Neumonía 6. Dolor de Estomago 7. Dolor de pulmones"<< endl;
+            cout<<"FECHA CITA : " << auxRecorrer->fechaCita<< endl;
+            cout<<"HORA CITA: " <<auxRecorrer->horaCita<<endl;
+            cout<<" <----------> "<< endl;
+            auxRecorrer=auxRecorrer->sig;
+        }
+    }
+    char* fechaActual= get_time();
+    file<<fechaActual<<" SHOWED LISTA &: "<< &cab<< endl;
+}
+
+int asignarDoctor(lista &cab, int sintoma){
+    int codigo;
+    lista aux=cab;
+    nodoDoctores *aux1;
+    switch(sintoma){
+        case 1:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 2:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 3:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 4:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 5:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 6:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+
+        case 7:
+        aux1=aux->doc;
+        codigo=aux1->codigo;
+        break;
+    }
+    return codigo;
+}
+
 /************************************************************
 ***************METODOS PARA LA LISTA DE PACIENTES************
 ************************************************************/
@@ -413,7 +581,7 @@ nodoProvincia *crearNodoPacientes(listaProvincias &cab, int provincia){
     return nuevo_nodo;
     file<<fechaActual<<"NODO PROVINCIA CREADO" << endl;
 }
-nodoPacientes *crearNodoPacientes(string nombre, int cedula, int celular, string sintomas, string fechaIngreso,int provincia){
+nodoPacientes *crearNodoPacientes(string nombre, int cedula, int celular, int sintomas, string fechaIngreso,int provincia){
     char* fechaActual= get_time();
     nodoPacientes *nuevo_nodo= new (struct nodoPacientes);
     nuevo_nodo->nombre=nombre;
@@ -436,7 +604,7 @@ void crearListaPrincipalPacientes(listaProvincias &cab, int provincia){
         cab=nuevo_nodo;
     }
 }
-void agregarPaciente(listaProvincias &cab, string nombre, int cedula, int celular, string sintomas, string fechaIngreso, int provincia){
+void agregarPaciente(listaProvincias &cab, string nombre, int cedula, int celular, int sintomas, string fechaIngreso, int provincia){
     listaProvincias aux;
     nodoPacientes *aux1;
     nodoPacientes *nuevo= crearNodoPacientes(nombre,cedula,celular,sintomas,fechaIngreso,provincia);
@@ -480,14 +648,20 @@ void crearNodosProvinciasDefault(listaProvincias &cab){
 }
 
 void crearPacientesEjemplo(listaProvincias &cab){
+    /*C=Cardiologia -> 1. Fiebre
+        D=Dermatologia -> 2. Dolor De CabezaO=Oftalmología -> 3. Dolor de muelas
+        N=Neurología -> 4. Covid
+        P=Pediatría -> 5. Neumonía
+        U=Urología -> 6. Dolor de Estomago
+        R=Reumatología -> 7. Dolor de pulmones*/
     char* fechaActual= get_time();
     file<<fechaActual<<"CREATED PACIENTES EJEMPLO"<<endl;
-    agregarPaciente(cab,"JOSEPH GRANADOS",118320862,605050505, "FIEBRE", "2020/09/15", 1);
-    agregarPaciente(cab,"JOSEPH GRANADOS",1183208622,605050505, "FIEBRE", "2020/09/15", 1);
-    agregarPaciente(cab,"ASSASAS GRANADOS",2183252,6085505, "FIEBRE", "2021/09/15", 2);
-    agregarPaciente(cab,"FDFD GRANADOS",318320862,605050505, "FIEBRE", "2020/09/25", 3);
-    agregarPaciente(cab,"DFFDFD GRANADOS",418320862,601150505, "FIEBRE", "2027/09/15", 4);
-    agregarPaciente(cab,"FDFD GRANADOS",52323232,1111111, "FIEBRE", "2025/09/15", 5);
+    agregarPaciente(cab,"JOSEPH GRANADOS",118320862,605050505, 1, "2020/09/15", 1);
+    agregarPaciente(cab,"JOSEPH GRANADOS",1183208622,605050505, 2, "2020/09/15", 1);
+    agregarPaciente(cab,"ASSASAS GRANADOS",2183252,6085505, 3, "2021/09/15", 2);
+    agregarPaciente(cab,"FDFD GRANADOS",318320862,605050505, 4, "2020/09/25", 3);
+    agregarPaciente(cab,"DFFDFD GRANADOS",418320862,601150505, 5, "2027/09/15", 4);
+    agregarPaciente(cab,"FDFD GRANADOS",52323232,1111111, 6, "2025/09/15", 5);
 }
 
 void mostrar(listaProvincias cab){
@@ -645,7 +819,7 @@ void actualizarCelPaciente(listaProvincias &cab, int cedula, int celNuevo){
     }
 }
 
-void actualizarSintomasPaciente(listaProvincias &cab, int cedula, string sintomasNuevo){
+void actualizarSintomasPaciente(listaProvincias &cab, int cedula, int sintomasNuevo){
     char* fechaActual= get_time(); //logging
     //Lista local para recorrer la lista
     listaProvincias aux=cab;
@@ -1220,7 +1394,7 @@ void menuUsers(listaUsers &listaU){
     do{
         system("cls"); 
         cout<<"Elija alguna opcion: "<< endl;
-        cout<<" 1. Agregar Users \n 2. Borrar Algun User \n 3. Actualizar algun user <CHECK> \n 4. Mostrar Lista Actual De Users \n :";
+        cout<<" 1. Agregar Users \n 2. Borrar Algun User \n 3. Actualizar algun user  \n 4. Mostrar Lista Actual De Users \n 5. Salir \n:";
         cin>>opc;
         switch(opc){
             case 1:
@@ -1326,13 +1500,78 @@ void menuUsers(listaUsers &listaU){
 
     }while(opc!=5);
 }
-void menuPacientes(listaProvincias &listaPA){
+
+void menuCitas (listaProvincias &listaPA, lista &Listaa){
     system("cls"); 
     char* fechaActual= get_time();
     listaProvincias listaP=listaPA;
-    int opc,cedula,celular,to_delete,to_update,opc2,nuevo_cel,nuevaProvincia;
+    lista Lista=Listaa;
+    listaCitas listaC=NULL;
+    int opc,cedula,codigo, sintomas,to_deleteCe;
+    string fechaCita, horaCita, to_deleteFechaCita, to_deleteHoraCita;
+    do{
+    system("cls"); 
+    file<<fechaActual<<" SELECTED MENU CITAS" << endl;
+    cout<<"BIENVENIDO AL MENU DE CITAS \n 1. Agregar citas \n 2. Eliminar una cita \n 3. Ver citas \n 4. Volver a menu de pacientes \n :";
+    cin>>opc;
+    switch(opc){
+        case 1:
+        system("cls"); 
+        cout<<"INGRESE SU CEDULA"<<endl;
+        cin>>cedula;
+        cout<<"Ingrese su sintoma: 1. Fiebre 2. Dolor De Cabeza 3. Dolor de muelas 4. Covid 5. Neumonía 6. Dolor de Estomago 7. Dolor de pulmones "<<endl;
+        cin>>sintomas;
+        codigo=asignarDoctor(Lista,sintomas);
+        cout<<"INGRESE LA FECHA" <<endl;
+        cin>>fechaCita;
+        cout<<"INGRESE LA HORA" <<endl;
+        cin>>horaCita;
+        if(checkCitas(listaC,cedula, codigo,fechaCita,horaCita)){
+            crearListaCitas(listaC,cedula, codigo,sintomas,fechaCita,horaCita);
+            cout<<" CREATED CITA" <<endl;
+        }
+        else{
+            cout<<"NO SE PUEDEN AGREGAR ESA CITA"<< endl;
+        }
+        system("pause");
+        break;
+
+        case 2:
+        system("cls"); 
+        cout<<"Ingrese los siguientes datos de su cita: \n";
+        cout<<" CEDULA: ";
+        cin>>to_deleteCe;
+        cout<<" FECHA DE CITA: ";
+        cin>>to_deleteFechaCita;
+        cout<<" HORA DE CITA: ";
+        cin>>to_deleteHoraCita;
+        borrarCita(listaC,to_deleteCe,to_deleteFechaCita,to_deleteHoraCita);
+        system("pause");
+        break;
+
+        case 3:
+        system("cls"); 
+        mostrarCitas(listaC);
+        system("pause");
+        break;
+
+        case 4:
+        system("cls"); 
+        cout<<"SALIENDO"<< endl;
+        break;
+    }
+    }while(opc!=4);
+
+}
+
+void menuPacientes(listaProvincias &listaPA, lista &Listaa){
+    system("cls"); 
+    char* fechaActual= get_time();
+    listaProvincias listaP=listaPA;
+    lista Lista=Listaa;
+    int opc,cedula,celular,to_delete,to_update,opc2,nuevo_cel,nuevaProvincia,sintomas,nuevoSintomas;
     vector <int> provincia;
-    string nombre,sintomas,fechaIngreso,nuevoNombre,nuevoSintomas,nuevoFecha;
+    string nombre,fechaIngreso,nuevoNombre,nuevoFecha;
     do{
     system("cls"); 
     cout<<"Bienvenido al menu de pacientes y citas! Favor elegir una opción \n 1. Agregar un paciente \n 2. Eliminar un paciente \n 3. Actualizar un paciente \n 4. Mostrar Pacientes \n 5. Administrar Citas \n 6. Salir \n:" ;
@@ -1346,7 +1585,7 @@ void menuPacientes(listaProvincias &listaPA){
         cin>>cedula;
         cout<<"Celular: \n";
         cin>>celular;
-        cout<<"Sintomas: \n";
+        cout<<"Sintomas: \n 1. Fiebre \n 2. Dolor De Cabeza \n 3. Dolor de muelas \n 4. Covid \n 5. Neumonía \n 6. Dolor de Estomago \n 7. Dolor de pulmones \n: ";
         cin>>sintomas;
         cout<<"Fecha de Ingreso: \n";
         cin>>fechaIngreso;
@@ -1388,7 +1627,7 @@ void menuPacientes(listaProvincias &listaPA){
 
             case 3:
             system("cls"); 
-            cout<<"Nuevos sintomas: "<< endl;
+            cout<<"Nuevos sintomas:\n 1. Fiebre \n 2. Dolor De Cabeza \n 3. Dolor de muelas \n 4. Covid \n 5. Neumonía \n 6. Dolor de Estomago \n 7. Dolor de pulmones \n: ";
             cin>>nuevoSintomas;
             actualizarSintomasPaciente(listaP,to_update,nuevoSintomas);
             break;
@@ -1414,6 +1653,11 @@ void menuPacientes(listaProvincias &listaPA){
 
         case 4:
         mostrar(listaP);
+        system("pause");
+        break;
+
+        case 5:
+        menuCitas(listaP,Lista);
         system("pause");
         break;
     }
@@ -1467,7 +1711,7 @@ void menuPrincipal(){
                 menuEspecialidades(Lista);
                 break;
                 case 3:
-                menuPacientes(listaP);
+                menuPacientes(listaP,Lista);
                 break;
             }
         }
@@ -1482,7 +1726,7 @@ void menuPrincipal(){
             cin>>opc;
             switch(opc){
                 case 1:
-                menuPacientes(listaP);
+                menuPacientes(listaP,Lista);
                 break;
                 case 2:
                 cout<<"SALIENDO";
